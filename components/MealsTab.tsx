@@ -239,6 +239,32 @@ export function MealsTab({
             </p>
           </div>
         </div>
+
+        {/* Locked Date Status Banner */}
+        {isSelectedDateLocked && (
+          <div className="mt-4 p-3.5 rounded-xl bg-amber-50 border border-amber-300 flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-2.5 text-xs text-amber-900 font-semibold">
+              <Lock className="w-4 h-4 text-amber-700 shrink-0" />
+              <span>
+                {lang === 'bn'
+                  ? `সতর্কবার্তা: ${selectedDate} তারিখের মিল শীট বর্তমানে লক করা আছে। লক থাকা অবস্থায় মিল সংখ্যা পরিবর্তন করা যাবে না।`
+                  : `Notice: Meal entries for ${selectedDate} are currently locked. Unlock the date to modify meal counts.`}
+              </span>
+            </div>
+            {isManager && (
+              <button
+                type="button"
+                onClick={() => onToggleDateLock(selectedDate)}
+                className="px-3 py-1.5 rounded-lg bg-[#173125] text-[#FED24F] text-xs font-semibold flex items-center gap-1.5 whitespace-nowrap hover:bg-[#438A53] hover:text-white transition-colors"
+              >
+                <Unlock className="w-3.5 h-3.5" />
+                <span>
+                  {lang === 'bn' ? 'এখনই আনলক করুন' : 'Unlock Date Now'}
+                </span>
+              </button>
+            )}
+          </div>
+        )}
       </section>
 
       {/* Per-Member Meal Counter List */}

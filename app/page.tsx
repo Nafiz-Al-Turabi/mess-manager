@@ -77,6 +77,13 @@ import { DepositsTab } from '@/components/DepositsTab';
 import { ReportsMembersTab } from '@/components/ReportsMembersTab';
 import { MessSwitcherModal } from '@/components/MessSwitcherModal';
 import { CloudAuthModal } from '@/components/CloudAuthModal';
+import {
+  ActionToast,
+  ConfirmActionModal,
+  PendingConfirmAction,
+  ToastMessage,
+  ToastTone,
+} from '@/components/ActionFeedback';
 
 const STORAGE_KEY_PREFIX = 'mess_hisab_state_v1_';
 
@@ -85,6 +92,32 @@ export default function MessManagerApp() {
   const [activeTab, setActiveTab] = useState<
     'home' | 'meals' | 'expenses' | 'deposits' | 'reports'
   >('home');
+
+  // Action Feedback Toast & Confirm Modal State
+  const [toast, setToast] = useState<ToastMessage | null>(null);
+  const [pendingConfirm, setPendingConfirm] =
+    useState<PendingConfirmAction | null>(null);
+
+  const triggerToast = (
+    title: string,
+    subtitle?: string,
+    tone: ToastTone = 'success'
+  ) => {
+    setToast({
+      id: Date.now(),
+      title,
+      subtitle,
+      tone,
+    });
+  };
+
+  useEffect(() => {
+    if (!toast) return;
+    const timer = setTimeout(() => {
+      setToast(null);
+    }, 3600);
+    return () => clearTimeout(timer);
+  }, [toast?.id]);
 
   // Mess Directory State
   const [messId, setMessId] = useState<string>(DEFAULT_MESS_ID);
@@ -426,6 +459,15 @@ export default function MessManagerApp() {
   const handleSignOut = async () => {
     await signOutFirebase();
     setCurrentUser(null);
+    triggerToast(
+      lang === 'bn'
+        ? 'ক্লাউড থেকে লগআউট করা হয়েছে'
+        : 'Signed out from Cloud Sync',
+      lang === 'bn'
+        ? 'অফলাইন স্টোরেজ সক্রিয় রয়েছে'
+        : 'Offline storage remains active',
+      'info'
+    );
   };
 
   const syncLockedDatesToCloud = (nextLocks: string[]) => {
@@ -445,24 +487,76 @@ export default function MessManagerApp() {
 
   const handleToggleMonthLock = () => {
     const next = toggleMonthClosedInLockedDates(lockedDates, monthKey);
+    const closedNow = isMonthClosed(next, monthKey);
     syncLockedDatesToCloud(next);
     appendActivityLog(
-      isMonthClosed(next, monthKey)
+      closedNow
         ? `মাসিক হিসাব লক করা হয়েছে (${monthKey})`
         : `মাসিক হিসাব আনলক করা হয়েছে (${monthKey})`,
       `Mess ${messId} month status updated`,
       'MONTH_LOCK'
     );
+    triggerToast(
+      closedNow
+        ? lang === 'bn'
+          ? `${monthKey} মাসের হিসাব লক (Close) করা হয়েছে`
+          : `Month ${monthKey} has been locked`
+        : lang === 'bn'
+          ? `${monthKey} মাসের হিসাব আনলক (Open) করা হয়েছে`
+          : `Month ${monthKey} has been unlocked`,
+      closedNow
+        ? lang === 'bn'
+          ? 'নতুন খরচ বা জমা এন্ট্রি এখন বন্ধ থাকবে'
+          : 'New expense and deposit entries are now restricted'
+        : lang === 'bn'
+          ? 'এখন খরচ ও জমা এডিট করা যাবে'
+          : 'Expenses and deposits can now be edited',
+      closedNow ? 'warning' : 'success'
+    );
   };
 
   const handleToggleDateLock = (dateStr: string) => {
     const next = toggleDateLockInLockedDates(lockedDates, dateStr);
+    const lockedNow = isDateLocked(next, dateStr);
     syncLockedDatesToCloud(next);
+    appendActivityLog(
+      lockedNow
+        ? `মিল তারিখ লক করা হয়েছে (${dateStr})`
+        : `মিল তারিখ আনলক করা হয়েছে (${dateStr})`,
+      `Mess ${messId} daily meal sheet lock toggled`,
+      'MEAL_LOCK'
+    );
+    triggerToast(
+      lockedNow
+        ? lang === 'bn'
+          ? `${dateStr} তারিখের মিল লক করা হয়েছে`
+          : `Meals locked for ${dateStr}`
+        : lang === 'bn'
+          ? `${dateStr} তারিখের মিল আনলক করা হয়েছে`
+          : `Meals unlocked for ${dateStr}`,
+      lockedNow
+        ? lang === 'bn'
+          ? 'এই তারিখের মিল আর পরিবর্তন করা যাবে না'
+          : 'Meal counts for this date are now protected'
+        : lang === 'bn'
+          ? 'এখন এই তারিখের মিল প্লাস/মাইনাস করা যাবে'
+          : 'You can now modify meal counts for this date',
+      lockedNow ? 'warning' : 'success'
+    );
   };
 
   const handleUpdateCutoffTime = (newTime: string) => {
     const next = updateMealCutoffInLockedDates(lockedDates, newTime);
     syncLockedDatesToCloud(next);
+    triggerToast(
+      lang === 'bn'
+        ? `মিল কাট-অফ টাইম আপডেট: ${newTime}`
+        : `Meal Cutoff Time updated to ${newTime}`,
+      lang === 'bn'
+        ? 'মেম্বারদের আগামীকালের মিল অন/অফ করার শেষ সময় নির্ধারিত হয়েছে'
+        : 'Deadline for self-service meal updates saved',
+      'info'
+    );
   };
 
   const handleUpsertMeal = (
@@ -507,6 +601,18 @@ export default function MessManagerApp() {
         () => {}
       );
     }
+
+    const mem = members.find((m) => m.id === memberId);
+    const total = (breakfast + lunch + dinner + guestMeal).toFixed(1);
+    triggerToast(
+      lang === 'bn'
+        ? `${mem ? mem.name : 'মেম্বার'}-এর মিল আপডেট হয়েছে (${total} মিল)`
+        : `Meal updated for ${mem ? mem.name : 'Member'} (${total} meals)`,
+      lang === 'bn'
+        ? `তারিখ: ${date} · সকাল: ${breakfast}, দুপুর: ${lunch}, রাত: ${dinner}, গেস্ট: ${guestMeal}`
+        : `Date: ${date} · B:${breakfast} L:${lunch} D:${dinner} G:${guestMeal}`,
+      'success'
+    );
   };
 
   const handleQuickFillAllActive = (
@@ -546,10 +652,26 @@ export default function MessManagerApp() {
     });
 
     setMeals(updatedMeals);
+    const isReset = bWeight === 0 && lWeight === 0 && dWeight === 0;
     appendActivityLog(
-      `ডেইলি মিল কুইক-ফিল (${date})`,
+      isReset
+        ? `ডেইলি মিল রিসেট (${date})`
+        : `ডেইলি মিল কুইক-ফিল (${date})`,
       `${activeList.length} জন সক্রিয় মেম্বারের মিল আপডেট করা হয়েছে`,
       'MEAL'
+    );
+    triggerToast(
+      isReset
+        ? lang === 'bn'
+          ? `${date} তারিখের সব মিল রিসেট (০) করা হয়েছে`
+          : `All meals reset to 0 for ${date}`
+        : lang === 'bn'
+          ? `${activeList.length} জন সক্রিয় মেম্বারের ফুল মিল সেট হয়েছে`
+          : `Quick-filled meals for ${activeList.length} active members`,
+      lang === 'bn'
+        ? `তারিখ: ${date} · সকাল: ${bWeight}, দুপুর: ${lWeight}, রাত: ${dWeight}`
+        : `Date: ${date} (${bWeight} + ${lWeight} + ${dWeight})`,
+      isReset ? 'warning' : 'success'
     );
   };
 
@@ -576,15 +698,57 @@ export default function MessManagerApp() {
       `${expObj.title} — ${expObj.paidByName}`,
       'EXPENSE'
     );
+    triggerToast(
+      existingId
+        ? lang === 'bn'
+          ? `খরচ আপডেট করা হয়েছে: ${expObj.title}`
+          : `Expense updated: ${expObj.title}`
+        : lang === 'bn'
+          ? `নতুন খরচ যোগ হয়েছে: ${expObj.title} (৳${expObj.amount})`
+          : `Expense added: ${expObj.title} (৳${expObj.amount})`,
+      `${expObj.isFoodExpense ? (lang === 'bn' ? 'মিলের বাজার খরচ' : 'Food/Bazar Expense') : lang === 'bn' ? 'শেয়ার্ড ইউটিলিটি বিল' : 'Shared Utility Bill'} · ${expObj.paidByName}`,
+      'success'
+    );
   };
 
   const handleDeleteExpense = (id: number) => {
-    setExpenses((prev) => prev.filter((e) => e.id !== id));
-    if (currentUser) {
-      deleteCloudMessRecord(cloudRecordId(`EXPENSE_${id}`, messId)).catch(
-        () => {}
-      );
-    }
+    const target = expenses.find((e) => e.id === id);
+    if (!target) return;
+
+    setPendingConfirm({
+      title:
+        lang === 'bn'
+          ? 'খরচ এন্ট্রি মুছে ফেলতে চান?'
+          : 'Delete this Expense Entry?',
+      description:
+        lang === 'bn'
+          ? `"${target.title}" (৳${target.amount}, তারিখ: ${target.date}) মুছে ফেললে মিল রেট ও মেস ব্যালেন্স পুনরায় হিসাব হবে।`
+          : `Deleting "${target.title}" (৳${target.amount} on ${target.date}) will recalculate the monthly meal rate and mess balance.`,
+      confirmLabel: lang === 'bn' ? 'হ্যাঁ, খরচ মুছুন' : 'Yes, Delete Expense',
+      tone: 'danger',
+      onConfirm: () => {
+        setExpenses((prev) => prev.filter((e) => e.id !== id));
+        if (currentUser) {
+          deleteCloudMessRecord(cloudRecordId(`EXPENSE_${id}`, messId)).catch(
+            () => {}
+          );
+        }
+        appendActivityLog(
+          `খরচ মুছে ফেলা হয়েছে: ${target.title} (৳${target.amount})`,
+          `তারিখ: ${target.date}`,
+          'EXPENSE'
+        );
+        triggerToast(
+          lang === 'bn'
+            ? `খরচ মুছে ফেলা হয়েছে: ${target.title}`
+            : `Expense deleted: ${target.title}`,
+          lang === 'bn'
+            ? `৳${target.amount} হিসাব থেকে বাদ দেওয়া হয়েছে`
+            : `৳${target.amount} removed from monthly ledger`,
+          'danger'
+        );
+      },
+    });
   };
 
   const handleSaveDeposit = (
@@ -611,15 +775,56 @@ export default function MessManagerApp() {
       `${mem ? mem.name : 'Member'} (${depObj.paymentMethod})`,
       'DEPOSIT'
     );
+    triggerToast(
+      existingId
+        ? lang === 'bn'
+          ? `জমা আপডেট হয়েছে: ৳${depObj.amount}`
+          : `Deposit updated: ৳${depObj.amount}`
+        : lang === 'bn'
+          ? `নতুন জমা যুক্ত হয়েছে: ৳${depObj.amount}`
+          : `New deposit recorded: ৳${depObj.amount}`,
+      `${mem ? mem.name : 'Member'} · ${depObj.paymentMethod} (${depObj.date})`,
+      'success'
+    );
   };
 
   const handleDeleteDeposit = (id: number) => {
-    setDeposits((prev) => prev.filter((d) => d.id !== id));
-    if (currentUser) {
-      deleteCloudMessRecord(cloudRecordId(`DEPOSIT_${id}`, messId)).catch(
-        () => {}
-      );
-    }
+    const target = deposits.find((d) => d.id === id);
+    if (!target) return;
+    const mem = members.find((m) => m.id === target.memberId);
+
+    setPendingConfirm({
+      title:
+        lang === 'bn'
+          ? 'টাকা জমার রেকর্ড মুছে ফেলতে চান?'
+          : 'Delete this Deposit Record?',
+      description:
+        lang === 'bn'
+          ? `${mem ? mem.name : 'মেম্বার'}-এর ৳${target.amount} জমা (${target.paymentMethod}, ${target.date}) মুছে ফেললে মেম্বারের ব্যালেন্স আপডেট হবে।`
+          : `Removing ৳${target.amount} deposit for ${mem ? mem.name : 'Member'} (${target.paymentMethod}, ${target.date}) will update their net balance.`,
+      confirmLabel: lang === 'bn' ? 'হ্যাঁ, জমা মুছুন' : 'Yes, Delete Deposit',
+      tone: 'danger',
+      onConfirm: () => {
+        setDeposits((prev) => prev.filter((d) => d.id !== id));
+        if (currentUser) {
+          deleteCloudMessRecord(cloudRecordId(`DEPOSIT_${id}`, messId)).catch(
+            () => {}
+          );
+        }
+        appendActivityLog(
+          `জমা মুছে ফেলা হয়েছে: ৳${target.amount}`,
+          `${mem ? mem.name : 'Member'} (${target.date})`,
+          'DEPOSIT'
+        );
+        triggerToast(
+          lang === 'bn'
+            ? `জমা মুছে ফেলা হয়েছে (৳${target.amount})`
+            : `Deposit deleted (৳${target.amount})`,
+          `${mem ? mem.name : 'Member'} · ${target.paymentMethod}`,
+          'danger'
+        );
+      },
+    });
   };
 
   const handleSaveMember = (
@@ -648,6 +853,17 @@ export default function MessManagerApp() {
       `রুম: ${memberObj.roomNumber} · রোল: ${memberObj.role}`,
       'MEMBER'
     );
+    triggerToast(
+      existingId
+        ? lang === 'bn'
+          ? `মেম্বার প্রোফাইল আপডেট হয়েছে: ${memberObj.name}`
+          : `Member profile updated: ${memberObj.name}`
+        : lang === 'bn'
+          ? `নতুন মেম্বার যোগ হয়েছে: ${memberObj.name}`
+          : `New member added: ${memberObj.name}`,
+      `${lang === 'bn' ? 'রুম:' : 'Room:'} ${memberObj.roomNumber} · ${memberObj.role}`,
+      'success'
+    );
   };
 
   const handleToggleMemberActive = (memberId: number) => {
@@ -660,15 +876,61 @@ export default function MessManagerApp() {
         () => {}
       );
     }
+    triggerToast(
+      updated.isActive
+        ? lang === 'bn'
+          ? `${updated.name}-কে সক্রিয় (Active) করা হয়েছে`
+          : `${updated.name} marked as Active`
+        : lang === 'bn'
+          ? `${updated.name}-কে নিষ্ক্রিয় (Inactive) করা হয়েছে`
+          : `${updated.name} marked as Inactive`,
+      updated.isActive
+        ? lang === 'bn'
+          ? 'এখন থেকে শেয়ার্ড ইউটিলিটি বিল ও মিল শীটে যুক্ত থাকবেন'
+          : 'Included in shared utility bills and daily meal sheet'
+        : lang === 'bn'
+          ? 'নিষ্ক্রিয় মেম্বারদের ওপর শেয়ার্ড বিল ধার্য হবে না'
+          : 'Exempt from shared utility bills while inactive',
+      updated.isActive ? 'success' : 'warning'
+    );
   };
 
   const handleDeleteMember = (memberId: number) => {
-    setMembers((prev) => prev.filter((m) => m.id !== memberId));
-    if (currentUser) {
-      deleteCloudMessRecord(cloudRecordId(`MEMBER_${memberId}`, messId)).catch(
-        () => {}
-      );
-    }
+    const target = members.find((m) => m.id === memberId);
+    if (!target) return;
+
+    setPendingConfirm({
+      title:
+        lang === 'bn'
+          ? `মেম্বার "${target.name}"-কে মুছে ফেলতে চান?`
+          : `Remove member "${target.name}"?`,
+      description:
+        lang === 'bn'
+          ? `রুম ${target.roomNumber}-এর মেম্বার "${target.name}"-কে মেস ডিরেক্টরি থেকে মুছে ফেলা হবে।`
+          : `"${target.name}" (Room ${target.roomNumber}) will be removed from the mess directory.`,
+      confirmLabel: lang === 'bn' ? 'হ্যাঁ, মেম্বার মুছুন' : 'Yes, Remove Member',
+      tone: 'danger',
+      onConfirm: () => {
+        setMembers((prev) => prev.filter((m) => m.id !== memberId));
+        if (currentUser) {
+          deleteCloudMessRecord(cloudRecordId(`MEMBER_${memberId}`, messId)).catch(
+            () => {}
+          );
+        }
+        appendActivityLog(
+          `মেম্বার মুছে ফেলা হয়েছে: ${target.name}`,
+          `রুম: ${target.roomNumber}`,
+          'MEMBER'
+        );
+        triggerToast(
+          lang === 'bn'
+            ? `মেম্বার মুছে ফেলা হয়েছে: ${target.name}`
+            : `Member removed: ${target.name}`,
+          `${lang === 'bn' ? 'রুম:' : 'Room:'} ${target.roomNumber}`,
+          'danger'
+        );
+      },
+    });
   };
 
   const handleSaveNotice = (updated: NoticeItem) => {
@@ -679,6 +941,13 @@ export default function MessManagerApp() {
       );
     }
     appendActivityLog(`নোটিশ আপডেট: ${updated.title}`, updated.message, 'NOTICE');
+    triggerToast(
+      lang === 'bn'
+        ? `নোটিশ বোর্ড আপডেট হয়েছে`
+        : `Mess Notice Board Updated`,
+      updated.title,
+      'success'
+    );
   };
 
   const handleAddRoster = (date: string, memberId: number, note: string) => {
@@ -697,6 +966,13 @@ export default function MessManagerApp() {
         () => {}
       );
     }
+    triggerToast(
+      lang === 'bn'
+        ? `বাজার রোস্টার যুক্ত হয়েছে (${date})`
+        : `Bazar Roster scheduled (${date})`,
+      `${item.memberName}${note ? ` · ${note}` : ''}`,
+      'success'
+    );
   };
 
   const handleToggleRosterStatus = (rosterId: number) => {
@@ -712,15 +988,50 @@ export default function MessManagerApp() {
         () => {}
       );
     }
+    triggerToast(
+      updated.status === 'COMPLETED'
+        ? lang === 'bn'
+          ? `বাজার সম্পন্ন হিসেবে মার্ক করা হয়েছে`
+          : `Bazar duty marked as Completed`
+        : lang === 'bn'
+          ? `বাজার রোস্টার পুনরায় আসন্ন (Upcoming) করা হয়েছে`
+          : `Bazar duty marked as Upcoming`,
+      `${updated.memberName} (${updated.date})`,
+      updated.status === 'COMPLETED' ? 'success' : 'info'
+    );
   };
 
   const handleDeleteRoster = (rosterId: number) => {
-    setRosters((prev) => prev.filter((r) => r.id !== rosterId));
-    if (currentUser) {
-      deleteCloudMessRecord(
-        cloudRecordId(`AUDIT_ROSTER_${rosterId}`, messId)
-      ).catch(() => {});
-    }
+    const target = rosters.find((r) => r.id === rosterId);
+    if (!target) return;
+
+    setPendingConfirm({
+      title:
+        lang === 'bn'
+          ? 'বাজার রোস্টার এন্ট্রি মুছে ফেলতে চান?'
+          : 'Delete Bazar Roster Entry?',
+      description:
+        lang === 'bn'
+          ? `${target.date} তারিখে ${target.memberName}-এর বাজার ডিউটি মুছে ফেলা হবে।`
+          : `Bazar duty for ${target.memberName} on ${target.date} will be deleted.`,
+      confirmLabel: lang === 'bn' ? 'হ্যাঁ, রোস্টার মুছুন' : 'Yes, Delete Roster',
+      tone: 'danger',
+      onConfirm: () => {
+        setRosters((prev) => prev.filter((r) => r.id !== rosterId));
+        if (currentUser) {
+          deleteCloudMessRecord(
+            cloudRecordId(`AUDIT_ROSTER_${rosterId}`, messId)
+          ).catch(() => {});
+        }
+        triggerToast(
+          lang === 'bn'
+            ? `বাজার রোস্টার মুছে ফেলা হয়েছে`
+            : `Bazar duty removed`,
+          `${target.memberName} (${target.date})`,
+          'danger'
+        );
+      },
+    });
   };
 
   const handleSimulateJoinRequest = (userName: string, userEmail: string) => {
@@ -736,6 +1047,13 @@ export default function MessManagerApp() {
     if (currentUser) {
       upsertJoinRequest(req).catch(() => {});
     }
+    triggerToast(
+      lang === 'bn'
+        ? `মেস জয়েন রিকোয়েস্ট পাঠানো হয়েছে`
+        : `Join Request Submitted`,
+      `${userName} (${userEmail}) → Mess ${messId}`,
+      'info'
+    );
   };
 
   const handleApproveJoinRequest = (req: JoinRequestItem) => {
@@ -758,6 +1076,13 @@ export default function MessManagerApp() {
     if (currentUser) {
       upsertJoinRequest({ ...req, status: 'APPROVED' }).catch(() => {});
     }
+    triggerToast(
+      lang === 'bn'
+        ? `জয়েন রিকোয়েস্ট অনুমোদন (Approve) করা হয়েছে!`
+        : `Join Request Approved!`,
+      `${req.userName} মেম্বার লিস্টে যুক্ত হয়েছেন`,
+      'success'
+    );
   };
 
   const handleRejectJoinRequest = (req: JoinRequestItem) => {
@@ -769,6 +1094,13 @@ export default function MessManagerApp() {
     if (currentUser) {
       upsertJoinRequest({ ...req, status: 'REJECTED' }).catch(() => {});
     }
+    triggerToast(
+      lang === 'bn'
+        ? `জয়েন রিকোয়েস্ট বাতিল (Reject) করা হয়েছে`
+        : `Join Request Rejected`,
+      `${req.userName} (${req.userEmail})`,
+      'warning'
+    );
   };
 
   const handleForceCloudPush = async () => {
@@ -798,6 +1130,13 @@ export default function MessManagerApp() {
     for (const r of rosters) {
       await upsertCloudMessRecord(encodeRosterToCloud(r, meta));
     }
+    triggerToast(
+      lang === 'bn'
+        ? 'সব ডেটা ফায়ারবেস ক্লাউডে সিঙ্ক হয়েছে!'
+        : 'All records synced to Firebase Cloud!',
+      `Mess Code: ${messId}`,
+      'success'
+    );
   };
 
   const handleDownloadMonthlyPdf = () => {
@@ -809,6 +1148,13 @@ export default function MessManagerApp() {
       expenses: expenses.filter((e) => e.date.startsWith(monthKey)),
       deposits: deposits.filter((d) => d.date.startsWith(monthKey)),
     });
+    triggerToast(
+      lang === 'bn'
+        ? `${monthKey} মাসের পূর্ণাঙ্গ পিডিএফ রিপোর্ট ডাউনলোড হয়েছে`
+        : `Monthly PDF Report downloaded (${monthKey})`,
+      `Mess_${messId}_Report_${monthKey}.pdf`,
+      'info'
+    );
   };
 
   const tomorrowMeal = meals.find(
@@ -821,7 +1167,17 @@ export default function MessManagerApp() {
       {/* Top App Bar */}
       <HeaderBar
         lang={lang}
-        onToggleLang={() => setLang((l) => (l === 'bn' ? 'en' : 'bn'))}
+        onToggleLang={() => {
+          const nextLang = lang === 'bn' ? 'en' : 'bn';
+          setLang(nextLang);
+          triggerToast(
+            nextLang === 'bn'
+              ? 'ভাষা পরিবর্তন: বাংলা চালু হয়েছে'
+              : 'Language switched to English',
+            undefined,
+            'info'
+          );
+        }}
         messId={messId}
         messName={messName}
         isManager={isManager}
@@ -831,11 +1187,25 @@ export default function MessManagerApp() {
           const prev = shiftMonthKey(monthKey, -1);
           setMonthKey(prev);
           setSelectedMealDate(`${prev}-15`);
+          triggerToast(
+            lang === 'bn'
+              ? `মাস পরিবর্তন: ${prev}`
+              : `Switched to month: ${prev}`,
+            undefined,
+            'info'
+          );
         }}
         onNextMonth={() => {
           const next = shiftMonthKey(monthKey, 1);
           setMonthKey(next);
           setSelectedMealDate(`${next}-15`);
+          triggerToast(
+            lang === 'bn'
+              ? `মাস পরিবর্তন: ${next}`
+              : `Switched to month: ${next}`,
+            undefined,
+            'info'
+          );
         }}
         onToggleMonthLock={handleToggleMonthLock}
         onOpenMessSwitcher={() => setShowMessSwitcher(true)}
@@ -976,6 +1346,15 @@ export default function MessManagerApp() {
             onDeleteMember={handleDeleteMember}
             statementMemberSummary={statementMemberSummary}
             onSelectStatementMember={setStatementMemberSummary}
+            onDownloadStatementPdf={(memberName) =>
+              triggerToast(
+                lang === 'bn'
+                  ? `${memberName}-এর ব্যক্তিগত স্টেটমেন্ট পিডিএফ ডাউনলোড হয়েছে`
+                  : `Statement PDF downloaded for ${memberName}`,
+                `${monthKey} · Mess ${messId}`,
+                'info'
+              )
+            }
           />
         )}
       </main>
@@ -1101,15 +1480,49 @@ export default function MessManagerApp() {
               lockedDates,
             }).catch(() => {});
           }
+          triggerToast(
+            lang === 'bn'
+              ? `মেস সেটিংস আপডেট হয়েছে: ${nextName} (${nextId})`
+              : `Mess settings saved: ${nextName} (${nextId})`,
+            undefined,
+            'success'
+          );
         }}
         onUnlockWithPin={(enteredPin) => {
           if (enteredPin === managerPin || enteredPin === DEFAULT_MANAGER_PIN) {
             setIsManager(true);
+            triggerToast(
+              lang === 'bn'
+                ? 'ম্যানেজার মোড আনলক করা হয়েছে!'
+                : 'Manager Mode Unlocked!',
+              lang === 'bn'
+                ? 'আপনি এখন সব হিসাব এডিট করতে পারবেন'
+                : 'You now have full manager access',
+              'success'
+            );
             return true;
           }
+          triggerToast(
+            lang === 'bn'
+              ? 'ভুল ম্যানেজার পিন! ডিফল্ট পিন: 16247'
+              : 'Incorrect Manager PIN! Default PIN: 16247',
+            undefined,
+            'danger'
+          );
           return false;
         }}
-        onSwitchToMemberMode={() => setIsManager(false)}
+        onSwitchToMemberMode={() => {
+          setIsManager(false);
+          triggerToast(
+            lang === 'bn'
+              ? 'মেম্বার ভিউ মোডে পরিবর্তন করা হয়েছে'
+              : 'Switched to Member View Mode',
+            lang === 'bn'
+              ? 'শুধুমাত্র দেখার এবং নিজের মিল অন/অফ করার সুবিধা থাকবে'
+              : 'Read-only ledger with self-meal toggle',
+            'info'
+          );
+        }}
         isOnlineSynced={Boolean(currentUser)}
         onForceCloudPush={handleForceCloudPush}
       />
@@ -1124,6 +1537,14 @@ export default function MessManagerApp() {
         onGooglePopupSignIn={handleGoogleSignIn}
         onEmailPasswordSignIn={handleEmailPasswordSignIn}
         onAnonymousCloudSignIn={handleAnonymousCloudSignIn}
+      />
+
+      {/* Global Action Toast & Delete Confirmation Modal */}
+      <ActionToast toast={toast} onDismiss={() => setToast(null)} />
+      <ConfirmActionModal
+        lang={lang}
+        pending={pendingConfirm}
+        onCancel={() => setPendingConfirm(null)}
       />
     </div>
   );

@@ -52,6 +52,7 @@ interface ReportsMembersTabProps {
   onDeleteMember: (memberId: number) => void;
   statementMemberSummary: MemberAccountingSummary | null;
   onSelectStatementMember: (summary: MemberAccountingSummary | null) => void;
+  onDownloadStatementPdf?: (memberName: string) => void;
 }
 
 export function ReportsMembersTab({
@@ -73,6 +74,7 @@ export function ReportsMembersTab({
   onDeleteMember,
   statementMemberSummary,
   onSelectStatementMember,
+  onDownloadStatementPdf,
 }: ReportsMembersTabProps) {
   const [showMemberModal, setShowMemberModal] = useState(false);
   const [editingMemberId, setEditingMemberId] = useState<number | undefined>(undefined);
@@ -664,6 +666,7 @@ export function ReportsMembersTab({
                         e.date.startsWith(monthKey) && e.paidByMemberId === memberId
                     ),
                   });
+                  onDownloadStatementPdf?.(statementMemberSummary.member.name);
                 }}
                 className="px-4 py-2 rounded-lg bg-[#173125] hover:bg-[#438A53] text-white text-xs font-semibold flex items-center gap-1.5"
               >
