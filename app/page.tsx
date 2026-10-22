@@ -52,9 +52,12 @@ import {
 import { shiftMonthKey } from '@/lib/i18n';
 import {
   auth,
+  checkGoogleRedirectResult,
   deleteCloudMessRecord,
   ensureUserInMessDirectory,
   onAuthStateChanged,
+  signInAnonymousCloud,
+  signInOrRegisterWithEmail,
   signInWithGooglePopup,
   signOutFirebase,
   subscribeJoinRequests,
@@ -73,6 +76,7 @@ import { ExpensesTab } from '@/components/ExpensesTab';
 import { DepositsTab } from '@/components/DepositsTab';
 import { ReportsMembersTab } from '@/components/ReportsMembersTab';
 import { MessSwitcherModal } from '@/components/MessSwitcherModal';
+import { CloudAuthModal } from '@/components/CloudAuthModal';
 
 const STORAGE_KEY_PREFIX = 'mess_hisab_state_v1_';
 
@@ -94,6 +98,8 @@ export default function MessManagerApp() {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [isManager, setIsManager] = useState<boolean>(true);
   const [authNotice, setAuthNotice] = useState<string | null>(null);
+  const [authErrorCode, setAuthErrorCode] = useState<string | null>(null);
+  const [showCloudAuthModal, setShowCloudAuthModal] = useState<boolean>(false);
 
   // Selected Month & Date
   const [monthKey, setMonthKey] = useState<string>('2026-10');
@@ -182,9 +188,13 @@ export default function MessManagerApp() {
 
   // Listen to Firebase Auth State
   useEffect(() => {
+    checkGoogleRedirectResult().catch(() => {});
     const unsub = onAuthStateChanged(auth, async (user) => {
       setCurrentUser(user);
       if (user) {
+        setShowCloudAuthModal(false);
+        setAuthNotice(null);
+        setAuthErrorCode(null);
         if ((user.email || '').toLowerCase() === ADMIN_EMAIL.toLowerCase()) {
           setIsManager(true);
         }
@@ -360,17 +370,56 @@ export default function MessManagerApp() {
   const handleGoogleSignIn = async () => {
     try {
       setAuthNotice(null);
+      setAuthErrorCode(null);
       const user = await signInWithGooglePopup();
       if ((user.email || '').toLowerCase() === ADMIN_EMAIL.toLowerCase()) {
         setIsManager(true);
       }
     } catch (err: unknown) {
+      const code = (err as { code?: string })?.code || '';
       const msg = err instanceof Error ? err.message : 'Sign-in cancelled';
+      setAuthErrorCode(code);
       setAuthNotice(
         lang === 'bn'
-          ? `গুগল সাইন-ইন পপআপ সম্পন্ন হয়নি (${msg}) — অফলাইন মোড চালু আছে।`
-          : `Google Sign-In popup did not complete (${msg}) — Offline Mode remains active.`
+          ? `গুগল পপআপ সম্পন্ন হয়নি (${code || msg}) — নিচের বিকল্প ক্লাউড লগইন বা ডোমেইন সেটআপ দেখুন।`
+          : `Google Popup did not complete (${code || msg}) — Use the Cloud Connect options below.`
       );
+      setShowCloudAuthModal(true);
+    }
+  };
+
+  const handleEmailPasswordSignIn = async (
+    email: string,
+    password: string,
+    displayName: string
+  ) => {
+    try {
+      setAuthNotice(null);
+      setAuthErrorCode(null);
+      const user = await signInOrRegisterWithEmail(email, password, displayName);
+      if ((user.email || '').toLowerCase() === ADMIN_EMAIL.toLowerCase()) {
+        setIsManager(true);
+      }
+      setShowCloudAuthModal(false);
+    } catch (err: unknown) {
+      const code = (err as { code?: string })?.code || '';
+      const msg = err instanceof Error ? err.message : 'Login error';
+      setAuthErrorCode(code);
+      setAuthNotice(msg);
+    }
+  };
+
+  const handleAnonymousCloudSignIn = async () => {
+    try {
+      setAuthNotice(null);
+      setAuthErrorCode(null);
+      await signInAnonymousCloud();
+      setShowCloudAuthModal(false);
+    } catch (err: unknown) {
+      const code = (err as { code?: string })?.code || '';
+      const msg = err instanceof Error ? err.message : 'Anonymous auth error';
+      setAuthErrorCode(code);
+      setAuthNotice(msg);
     }
   };
 
@@ -791,7 +840,7 @@ export default function MessManagerApp() {
         onToggleMonthLock={handleToggleMonthLock}
         onOpenMessSwitcher={() => setShowMessSwitcher(true)}
         isOnlineSynced={Boolean(currentUser)}
-        userEmail={currentUser?.email || null}
+        userEmail={currentUser ? (currentUser.email || 'Cloud Connected') : null}
         onGoogleSignIn={handleGoogleSignIn}
         onSignOut={handleSignOut}
         activeTab={activeTab}
@@ -801,15 +850,24 @@ export default function MessManagerApp() {
       {/* Optional Non-Intrusive Auth Feedback Banner */}
       {authNotice && (
         <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 pt-3 no-print">
-          <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-900 flex items-center justify-between">
+          <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-900 flex flex-wrap items-center justify-between gap-2">
             <span>{authNotice}</span>
-            <button
-              type="button"
-              onClick={() => setAuthNotice(null)}
-              className="font-bold ml-3 underline"
-            >
-              OK
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setShowCloudAuthModal(true)}
+                className="px-2.5 py-1 rounded-lg bg-[#173125] text-[#FED24F] font-semibold"
+              >
+                {lang === 'bn' ? 'ক্লাউড ও .env সেটআপ' : 'Cloud & .env Setup'}
+              </button>
+              <button
+                type="button"
+                onClick={() => setAuthNotice(null)}
+                className="font-bold underline"
+              >
+                OK
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -1054,6 +1112,18 @@ export default function MessManagerApp() {
         onSwitchToMemberMode={() => setIsManager(false)}
         isOnlineSynced={Boolean(currentUser)}
         onForceCloudPush={handleForceCloudPush}
+      />
+
+      {/* Cloud Auth, Authorized Domain Fix & .env Modal */}
+      <CloudAuthModal
+        lang={lang}
+        isOpen={showCloudAuthModal}
+        onClose={() => setShowCloudAuthModal(false)}
+        authErrorCode={authErrorCode}
+        authErrorMessage={authNotice}
+        onGooglePopupSignIn={handleGoogleSignIn}
+        onEmailPasswordSignIn={handleEmailPasswordSignIn}
+        onAnonymousCloudSignIn={handleAnonymousCloudSignIn}
       />
     </div>
   );

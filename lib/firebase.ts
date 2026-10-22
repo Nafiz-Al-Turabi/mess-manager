@@ -3,6 +3,12 @@ import {
   getAuth,
   GoogleAuthProvider,
   signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  signInAnonymously,
+  updateProfile,
   signOut as fbSignOut,
   onAuthStateChanged,
   User,
@@ -27,16 +33,47 @@ import {
 } from './types';
 import { ADMIN_EMAIL, DEFAULT_MANAGER_PIN, DEFAULT_MESS_ID } from './accounting';
 
+import firebaseAppletConfig from '../firebase-applet-config.json';
+
 export const FIREBASE_CONFIG = {
-  projectId: 'gen-lang-client-0089843448',
-  apiKey: 'AIzaSyBdU2Yqr0YWbQifpUNpOjO-Iko60NtjbZk',
-  authDomain: 'gen-lang-client-0089843448.firebaseapp.com',
-  storageBucket: 'gen-lang-client-0089843448.firebasestorage.app',
-  messagingSenderId: '367237863098',
+  projectId:
+    process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID ||
+    firebaseAppletConfig.projectId ||
+    'gen-lang-client-0089843448',
+  appId:
+    process.env.NEXT_PUBLIC_FIREBASE_APP_ID ||
+    firebaseAppletConfig.appId ||
+    '1:367237863098:web:e25f16519d6445c3881483',
+  apiKey:
+    process.env.NEXT_PUBLIC_FIREBASE_API_KEY ||
+    firebaseAppletConfig.apiKey ||
+    'AIzaSyAI6ybJtPzL8EOxSBTYNjdHtU49Zqt1_Ng',
+  authDomain:
+    process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN ||
+    firebaseAppletConfig.authDomain ||
+    'gen-lang-client-0089843448.firebaseapp.com',
+  storageBucket:
+    process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET ||
+    firebaseAppletConfig.storageBucket ||
+    'gen-lang-client-0089843448.firebasestorage.app',
+  messagingSenderId:
+    process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID ||
+    firebaseAppletConfig.messagingSenderId ||
+    '367237863098',
 };
 
 export const FIRESTORE_DATABASE_ID =
+  process.env.NEXT_PUBLIC_FIREBASE_DATABASE_ID ||
+  firebaseAppletConfig.firestoreDatabaseId ||
   'ai-studio-android-messmana-bb491f10-7606-470e-a62e-a2a619841470';
+
+export const AUTHORIZED_DOMAINS_LIST = [
+  'mess-manager-wheat.vercel.app',
+  'localhost',
+  '127.0.0.1',
+  'ais-dev-awufxscz7ak45nnwkbdlok-574574524069.asia-east1.run.app',
+  'ais-pre-awufxscz7ak45nnwkbdlok-574574524069.asia-east1.run.app',
+];
 
 const app = getApps().length > 0 ? getApp() : initializeApp(FIREBASE_CONFIG);
 export const auth = getAuth(app);
@@ -75,6 +112,49 @@ async function resolveCreatedAt(collectionName: string, docId: string): Promise<
 export async function signInWithGooglePopup(): Promise<User> {
   const result = await signInWithPopup(auth, googleProvider);
   return result.user;
+}
+
+export async function signInWithGoogleRedirectFallback(): Promise<void> {
+  await signInWithRedirect(auth, googleProvider);
+}
+
+export async function checkGoogleRedirectResult(): Promise<User | null> {
+  try {
+    const res = await getRedirectResult(auth);
+    return res?.user || null;
+  } catch {
+    return null;
+  }
+}
+
+export async function signInOrRegisterWithEmail(
+  email: string,
+  password: string,
+  displayName?: string
+): Promise<User> {
+  try {
+    const res = await signInWithEmailAndPassword(auth, email, password);
+    return res.user;
+  } catch (err: unknown) {
+    const code = (err as { code?: string })?.code || '';
+    if (
+      code === 'auth/user-not-found' ||
+      code === 'auth/invalid-credential' ||
+      code === 'auth/invalid-login-credentials'
+    ) {
+      const created = await createUserWithEmailAndPassword(auth, email, password);
+      if (displayName && created.user) {
+        await updateProfile(created.user, { displayName });
+      }
+      return created.user;
+    }
+    throw err;
+  }
+}
+
+export async function signInAnonymousCloud(): Promise<User> {
+  const res = await signInAnonymously(auth);
+  return res.user;
 }
 
 export async function signOutFirebase(): Promise<void> {
