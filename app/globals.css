@@ -1,0 +1,22 @@
+@import "tailwindcss";
+
+@layer base {
+  body {
+    font-family: var(--font-bengali), var(--font-sans), system-ui, -apple-system, sans-serif;
+  }
+
+  .font-numeric {
+    font-family: var(--font-bengali), var(--font-sans), var(--font-mono), system-ui, sans-serif;
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+}

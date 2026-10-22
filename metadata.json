@@ -1,0 +1,6 @@
+{
+  "name": "মেস হিসাব - Mess Manager",
+  "description": "Bangladeshi Bachelor & Student Mess Meal, Bazar, Shared Bill, and Accounting Management Web Application with real-time Android Firebase sync.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
