@@ -573,9 +573,9 @@ export function HomeTab({
                         : "L / D Meal Counts:"}
                     </span>
                     <span className="font-numeric font-semibold text-[#173125]">
-                      {mySummary.lunchCount} / {mySummary.dinnerCount}
-                      {mySummary.guestMealCount > 0
-                        ? ` (+${mySummary.guestMealCount} Guest)`
+                      {mySummary?.lunchCount ?? 0} / {mySummary?.dinnerCount ?? 0}
+                      {(mySummary?.guestMealCount ?? 0) > 0
+                        ? ` (+${mySummary?.guestMealCount} Guest)`
                         : ""}
                     </span>
                   </div>
@@ -586,10 +586,10 @@ export function HomeTab({
                         : "Cash / Bank Deposit:"}
                     </span>
                     <span className="font-numeric font-semibold text-[#173125]">
-                      {formatCurrency(mySummary.cashDeposit, lang)}
+                      {formatCurrency(mySummary?.cashDeposit ?? 0, lang)}
                     </span>
                   </div>
-                  {mySummary.paidExpenseCredit > 0 && (
+                  {(mySummary?.paidExpenseCredit ?? 0) > 0 && (
                     <div className="flex justify-between">
                       <span>
                         {lang === "bn"
@@ -597,7 +597,7 @@ export function HomeTab({
                           : "Bazar Paid from Pocket:"}
                       </span>
                       <span className="font-numeric font-semibold text-emerald-600">
-                        {formatCurrency(mySummary.paidExpenseCredit, lang)}
+                        {formatCurrency(mySummary?.paidExpenseCredit ?? 0, lang)}
                       </span>
                     </div>
                   )}
@@ -608,7 +608,7 @@ export function HomeTab({
                         : "Total Expense (Meal + Shared):"}
                     </span>
                     <span className="font-numeric">
-                      {formatCurrency(mySummary.totalCost, lang)}
+                      {formatCurrency(mySummary?.totalCost ?? 0, lang)}
                     </span>
                   </div>
                 </div>
