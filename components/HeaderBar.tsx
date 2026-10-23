@@ -102,7 +102,7 @@ export function HeaderBar({
           </div>
           <div className="min-w-0">
             <div className="flex items-center gap-1.5 min-w-0">
-              <span className="text-sm sm:text-lg font-bold tracking-tight text-white whitespace-nowrap">
+              <span className="hidden md:block text-sm sm:text-lg font-bold tracking-tight text-white whitespace-nowrap">
                 {lang === 'bn' ? 'মেস হিসাব' : 'Mess Manager'}
               </span>
               <span className="hidden md:inline text-xs text-[#B2D959] font-medium whitespace-nowrap truncate">

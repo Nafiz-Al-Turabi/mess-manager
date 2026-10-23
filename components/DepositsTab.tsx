@@ -128,7 +128,7 @@ export function DepositsTab({
       <section className="rounded-2xl bg-white border border-[#173125]/10 p-5">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <h1 className="text-lg sm:text-xl font-bold text-[#173125] flex items-center gap-2">
+            <h1 className="text-lg sm:text-xl font-bold text-[#173125] flex items-start md:items-center gap-2">
               <Wallet className="w-5 h-5 text-[#438A53]" />
               <span>
                 {lang === 'bn'
