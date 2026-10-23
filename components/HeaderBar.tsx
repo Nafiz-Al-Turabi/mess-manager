@@ -4,19 +4,21 @@ import React from 'react';
 import {
   ChevronLeft,
   ChevronRight,
-  Cloud,
-  CloudOff,
+  Database,
   Globe,
   KeyRound,
   Lock,
   LogIn,
   LogOut,
+  ShieldAlert,
   ShieldCheck,
   Unlock,
+  Users,
   UtensilsCrossed,
 } from 'lucide-react';
 import { Language } from '@/lib/types';
 import { formatMonthLabel } from '@/lib/i18n';
+import { AppUser } from '@/lib/mongo-client';
 
 interface HeaderBarProps {
   lang: Language;
@@ -31,8 +33,9 @@ interface HeaderBarProps {
   onToggleMonthLock: () => void;
   onOpenMessSwitcher: () => void;
   isOnlineSynced: boolean;
-  userEmail: string | null;
-  onGoogleSignIn: () => void;
+  currentUser: AppUser | null;
+  onOpenLogin: () => void;
+  onOpenUserManagement: () => void;
   onSignOut: () => void;
   activeTab: string;
   onSelectTab: (tab: 'home' | 'meals' | 'expenses' | 'deposits' | 'reports') => void;
@@ -51,8 +54,9 @@ export function HeaderBar({
   onToggleMonthLock,
   onOpenMessSwitcher,
   isOnlineSynced,
-  userEmail,
-  onGoogleSignIn,
+  currentUser,
+  onOpenLogin,
+  onOpenUserManagement,
   onSignOut,
   activeTab,
   onSelectTab,
@@ -68,6 +72,9 @@ export function HeaderBar({
     { id: 'deposits', labelBn: 'জমা এন্ট্রি', labelEn: 'Deposits' },
     { id: 'reports', labelBn: 'রিপোর্ট ও মেম্বার', labelEn: 'Reports & Members' },
   ];
+
+  const isSuperAdmin = currentUser?.role === 'SUPER_ADMIN';
+  const isAdmin = currentUser?.role === 'ADMIN' || isSuperAdmin;
 
   return (
     <header className="sticky top-0 z-30 bg-[#173125] text-white border-b border-[#438A53]/30 no-print">
@@ -88,13 +95,11 @@ export function HeaderBar({
               </span>
             </div>
             <p className="text-[11px] text-white/70 whitespace-nowrap truncate hidden sm:block">
-              {isManager
-                ? lang === 'bn'
-                  ? 'ম্যানেজার মোড সক্রিয় · সব তথ্য সম্পাদনাযোগ্য'
-                  : 'Manager Mode Active · Full Edit Access'
+              {currentUser
+                ? `${currentUser.name} (${currentUser.role}) · MongoDB Atlas Connected`
                 : lang === 'bn'
-                  ? 'মেম্বার ভিউ · নিজের মিল ও হিসাব দেখুন'
-                  : 'Member View · Check Meals & Balance'}
+                  ? 'লগইন করে মেসের হিসাব পরিচালনা করুন'
+                  : 'Login to manage mess accounts'}
             </p>
           </div>
         </div>
@@ -123,48 +128,57 @@ export function HeaderBar({
           })}
         </nav>
 
-        {/* Zone 3: Controls (Mess Switcher, Auth Sync, Language Toggle) */}
+        {/* Zone 3: Controls (User Management, Auth, Language) */}
         <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+          {/* User Management Button for Super Admin or Admin */}
+          {isAdmin && (
+            <button
+              type="button"
+              onClick={onOpenUserManagement}
+              className="min-h-[38px] sm:min-h-[40px] px-2.5 sm:px-3 py-1.5 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 text-xs font-semibold flex items-center gap-1.5 whitespace-nowrap shrink-0 transition border border-amber-500/30 shadow-sm"
+              title={lang === 'bn' ? 'ইউজার ও রোল পরিচালনা' : 'Manage Users & Permissions'}
+            >
+              <Users className="w-3.5 h-3.5 text-amber-300" />
+              <span>{lang === 'bn' ? 'ইউজার লিস্ট' : 'Users'}</span>
+            </button>
+          )}
+
           <button
             type="button"
             onClick={onOpenMessSwitcher}
             className="min-h-[38px] sm:min-h-[40px] px-2.5 sm:px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/15 text-xs font-medium text-white flex items-center gap-1 sm:gap-1.5 whitespace-nowrap shrink-0 transition-colors"
-            title={lang === 'bn' ? 'মেস কোড ও ম্যানেজার পিন সেটিংস' : 'Mess Code & Manager PIN Settings'}
+            title={lang === 'bn' ? 'মেস কোড সেটিংস' : 'Mess Code Settings'}
           >
             <KeyRound className="w-3.5 h-3.5 text-[#FED24F]" />
             <span className="hidden xs:inline sm:inline">
-              {isManager
-                ? lang === 'bn'
-                  ? 'ম্যানেজার'
-                  : 'Manager'
-                : lang === 'bn'
-                  ? 'মেম্বার'
-                  : 'Member'}
+              {currentUser?.role === 'SUPER_ADMIN'
+                ? 'Super Admin'
+                : isManager
+                  ? (lang === 'bn' ? 'ম্যানেজার' : 'Manager')
+                  : (lang === 'bn' ? 'মেম্বার' : 'Member')}
             </span>
             <span className="text-[#B2D959] font-numeric font-bold">{messId}</span>
           </button>
 
-          {userEmail ? (
+          {currentUser ? (
             <button
               type="button"
               onClick={onSignOut}
-              className="min-h-[38px] sm:min-h-[40px] px-2.5 sm:px-3 py-1.5 rounded-lg bg-[#438A53]/40 hover:bg-[#438A53]/60 text-xs font-medium text-[#B2D959] flex items-center gap-1.5 whitespace-nowrap shrink-0 transition-colors"
-              title={`${userEmail} - Click to Sign Out`}
+              className="min-h-[38px] sm:min-h-[40px] px-2.5 sm:px-3 py-1.5 rounded-lg bg-[#438A53]/40 hover:bg-rose-500/20 hover:text-rose-300 text-xs font-medium text-[#B2D959] flex items-center gap-1.5 whitespace-nowrap shrink-0 transition-colors"
+              title={`Logged in as ${currentUser.username} (${currentUser.role}) - Click to Sign Out`}
             >
-              <Cloud className="w-3.5 h-3.5 text-[#7EC151]" />
-              <span className="hidden sm:inline">
-                {lang === 'bn' ? 'ক্লাউড সিঙ্ক সক্রিয়' : 'Cloud Synced'}
-              </span>
-              <LogOut className="w-3.5 h-3.5 text-white/70" />
+              <Database className="w-3.5 h-3.5 text-[#7EC151]" />
+              <span className="hidden sm:inline">@{currentUser.username}</span>
+              <LogOut className="w-3.5 h-3.5 opacity-80" />
             </button>
           ) : (
             <button
               type="button"
-              onClick={onGoogleSignIn}
-              className="min-h-[38px] sm:min-h-[40px] px-2.5 sm:px-3 py-1.5 rounded-lg bg-[#FED24F] hover:bg-[#FED24F]/90 text-[#173125] text-xs font-semibold flex items-center gap-1 whitespace-nowrap shrink-0 transition-colors"
+              onClick={onOpenLogin}
+              className="min-h-[38px] sm:min-h-[40px] px-3 sm:px-3.5 py-1.5 rounded-lg bg-[#FED24F] hover:bg-[#FED24F]/90 text-[#173125] text-xs font-bold flex items-center gap-1.5 whitespace-nowrap shrink-0 transition shadow-sm"
             >
               <LogIn className="w-3.5 h-3.5" />
-              <span>{lang === 'bn' ? 'সাইন-ইন' : 'Sync'}</span>
+              <span>{lang === 'bn' ? 'লগইন' : 'Login'}</span>
             </button>
           )}
 
@@ -180,7 +194,7 @@ export function HeaderBar({
         </div>
       </div>
 
-      {/* Sub-bar: Month Selector & Sync Status */}
+      {/* Sub-bar: Month Selector & Realtime Sync Status */}
       <div className="bg-[#12271D] border-t border-white/10">
         <div className="max-w-7xl mx-auto px-3 sm:px-6 py-2 flex items-center justify-between gap-2">
           {/* Month Navigator */}
@@ -214,54 +228,40 @@ export function HeaderBar({
                   <ShieldCheck className="w-3.5 h-3.5 text-[#7EC151]" />
                   <span>
                     {lang === 'bn'
-                      ? 'অ্যান্ড্রয়েড অ্যাপ ২-ওয়ে সিঙ্ক সংযুক্ত'
-                      : 'Android 2-Way Sync Connected'}
+                      ? 'MongoDB Atlas রিয়েল-টাইম সংযুক্ত'
+                      : 'MongoDB Atlas Real-time Connected'}
                   </span>
                 </>
               ) : (
                 <>
-                  <CloudOff className="w-3.5 h-3.5 text-[#FED24F]" />
-                  <span>
-                    {lang === 'bn'
-                      ? 'অফলাইন লোকাল মোড (গুগল লগইন করলে ক্লাউড সিঙ্ক হবে)'
-                      : 'Offline Local Mode (Sign in to sync with Android)'}
-                  </span>
+                  <Database className="w-3.5 h-3.5 text-amber-400" />
+                  <span>{lang === 'bn' ? 'ডাটাবেজ সিঙ্ক হচ্ছে...' : 'Database Syncing...'}</span>
                 </>
               )}
             </span>
 
-            {isManager ? (
+            {isManager && (
               <button
                 type="button"
                 onClick={onToggleMonthLock}
-                className={`min-h-[34px] px-2.5 sm:px-3 py-1 rounded-lg text-xs font-medium flex items-center gap-1.5 whitespace-nowrap shrink-0 transition-colors ${
+                className={`min-h-[34px] px-2.5 sm:px-3 py-1 rounded-lg flex items-center gap-1.5 font-medium transition-colors whitespace-nowrap ${
                   isMonthLocked
-                    ? 'bg-amber-500/20 text-[#FED24F] border border-[#FED24F]/40'
-                    : 'bg-white/10 text-white/90 hover:bg-white/15'
+                    ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40 hover:bg-rose-500/30'
+                    : 'bg-[#FED24F]/20 text-[#FED24F] border border-[#FED24F]/40 hover:bg-[#FED24F]/30'
                 }`}
               >
                 {isMonthLocked ? (
                   <>
-                    <Lock className="w-3.5 h-3.5 text-[#FED24F]" />
-                    <span>{lang === 'bn' ? 'মাস লক করা' : 'Month Closed'}</span>
+                    <Lock className="w-3.5 h-3.5" />
+                    <span>{lang === 'bn' ? 'মাস বন্ধ আছে' : 'Month Closed'}</span>
                   </>
                 ) : (
                   <>
-                    <Unlock className="w-3.5 h-3.5 text-[#B2D959]" />
-                    <span>{lang === 'bn' ? 'হিসাব চালু আছে' : 'Month Open'}</span>
+                    <Unlock className="w-3.5 h-3.5" />
+                    <span>{lang === 'bn' ? 'চলতি মাস উন্মুক্ত' : 'Month Open'}</span>
                   </>
                 )}
               </button>
-            ) : (
-              <span className="text-white/70 whitespace-nowrap">
-                {isMonthLocked
-                  ? lang === 'bn'
-                    ? '· মাস লকড'
-                    : '· Closed'
-                  : lang === 'bn'
-                    ? '· চলতি মাস'
-                    : '· Open'}
-              </span>
             )}
           </div>
         </div>

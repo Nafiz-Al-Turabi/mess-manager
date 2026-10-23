@@ -50,24 +50,6 @@ import {
   updateMealCutoffInLockedDates,
 } from '@/lib/accounting';
 import { shiftMonthKey } from '@/lib/i18n';
-import {
-  auth,
-  checkGoogleRedirectResult,
-  deleteCloudMessRecord,
-  ensureUserInMessDirectory,
-  onAuthStateChanged,
-  signInAnonymousCloud,
-  signInOrRegisterWithEmail,
-  signInWithGooglePopup,
-  signOutFirebase,
-  subscribeJoinRequests,
-  subscribeMessDirectory,
-  subscribeMessRecords,
-  upsertCloudMessRecord,
-  upsertJoinRequest,
-  upsertMessDirectoryDoc,
-  User,
-} from '@/lib/firebase';
 import { generateMonthlyMessPdf } from '@/lib/pdf-export';
 import { HeaderBar } from '@/components/HeaderBar';
 import { HomeTab } from '@/components/HomeTab';
@@ -76,7 +58,17 @@ import { ExpensesTab } from '@/components/ExpensesTab';
 import { DepositsTab } from '@/components/DepositsTab';
 import { ReportsMembersTab } from '@/components/ReportsMembersTab';
 import { MessSwitcherModal } from '@/components/MessSwitcherModal';
-import { CloudAuthModal } from '@/components/CloudAuthModal';
+import { MongoLoginModal } from '@/components/MongoLoginModal';
+import { UserManagementModal } from '@/components/UserManagementModal';
+import {
+  AppUser,
+  fetchCurrentUser,
+  fetchMessDataFromMongo,
+  logoutUser,
+  upsertMongoMessRecord,
+  deleteMongoMessRecord,
+  upsertMongoSettings,
+} from '@/lib/mongo-client';
 import {
   ActionToast,
   ConfirmActionModal,
@@ -128,11 +120,12 @@ export default function MessManagerApp() {
   const [lockedDates, setLockedDates] = useState<string[]>(['CUTOFF_22:00']);
 
   // Auth & Role State
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [currentUser, setCurrentUser] = useState<AppUser | null>(null);
   const [isManager, setIsManager] = useState<boolean>(true);
   const [authNotice, setAuthNotice] = useState<string | null>(null);
   const [authErrorCode, setAuthErrorCode] = useState<string | null>(null);
-  const [showCloudAuthModal, setShowCloudAuthModal] = useState<boolean>(false);
+  const [showLoginModal, setShowLoginModal] = useState<boolean>(false);
+  const [showUserManagementModal, setShowUserManagementModal] = useState<boolean>(false);
 
   // Selected Month & Date
   const [monthKey, setMonthKey] = useState<string>('2026-10');
@@ -219,63 +212,31 @@ export default function MessManagerApp() {
     activityLogs,
   ]);
 
-  // Listen to Firebase Auth State
+  // Check currently logged in user on initial load
   useEffect(() => {
-    checkGoogleRedirectResult().catch(() => {});
-    const unsub = onAuthStateChanged(auth, async (user) => {
-      setCurrentUser(user);
+    fetchCurrentUser().then((user) => {
       if (user) {
-        setShowCloudAuthModal(false);
-        setAuthNotice(null);
-        setAuthErrorCode(null);
-        if ((user.email || '').toLowerCase() === ADMIN_EMAIL.toLowerCase()) {
+        setCurrentUser(user);
+        if (user.role === 'SUPER_ADMIN' || user.role === 'ADMIN') {
           setIsManager(true);
-        }
-        await ensureUserInMessDirectory(
-          user,
-          messId,
-          messName,
-          managerPin,
-          lockedDates
-        );
-      }
-    });
-    return () => unsub();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [messId]);
-
-  // Subscribe to Firestore 2-Way Real-Time Sync when signed in
-  useEffect(() => {
-    if (!currentUser) return;
-
-    const unsubDir = subscribeMessDirectory(messId, (dirDoc) => {
-      if (dirDoc) {
-        if (dirDoc.messName) setMessName(dirDoc.messName);
-        if (dirDoc.managerPin) setManagerPin(dirDoc.managerPin);
-        if (Array.isArray(dirDoc.managerUids)) {
-          setManagerUids(dirDoc.managerUids);
-          if (
-            dirDoc.managerUids.includes(currentUser.uid) ||
-            (currentUser.email || '').toLowerCase() === ADMIN_EMAIL.toLowerCase()
-          ) {
-            setIsManager(true);
-          }
-        }
-        if (Array.isArray(dirDoc.memberUids)) {
-          setMemberUids(dirDoc.memberUids);
-        }
-        if (Array.isArray(dirDoc.lockedDates)) {
-          setLockedDates(dirDoc.lockedDates);
+        } else {
+          setIsManager(false);
         }
       }
     });
+  }, []);
 
-    const unsubRecords = subscribeMessRecords(
-      currentUser.uid,
-      messId,
-      (cloudDocs: CloudMessRecordPayload[]) => {
-        if (cloudDocs.length === 0) return;
+  // MongoDB Real-time Sync and Periodic Polling
+  const syncWithMongo = async () => {
+    try {
+      const data = await fetchMessDataFromMongo(messId);
+      if (data.settings) {
+        if (data.settings.messName) setMessName(data.settings.messName);
+        if (data.settings.managerPin) setManagerPin(data.settings.managerPin);
+        if (Array.isArray(data.settings.lockedDates)) setLockedDates(data.settings.lockedDates);
+      }
 
+      if (Array.isArray(data.records) && data.records.length > 0) {
         const nextMembers: Member[] = [];
         const nextMeals: MealRecord[] = [];
         const nextExpenses: ExpenseRecord[] = [];
@@ -284,7 +245,7 @@ export default function MessManagerApp() {
         const nextLogs: ActivityLogItem[] = [];
         let nextNotice: NoticeItem | null = null;
 
-        cloudDocs.forEach((doc) => {
+        data.records.forEach((doc) => {
           if (doc.recordType === 'MEMBER') {
             nextMembers.push(decodeMemberFromCloud(doc));
           } else if (doc.recordType === 'MEAL') {
@@ -304,53 +265,32 @@ export default function MessManagerApp() {
           }
         });
 
-        if (nextMembers.length > 0) {
-          setMembers(nextMembers.sort((a, b) => a.id - b.id));
-        }
-        if (nextMeals.length > 0) {
-          setMeals(nextMeals);
-        }
-        if (nextExpenses.length > 0) {
-          setExpenses(nextExpenses.sort((a, b) => b.date.localeCompare(a.date)));
-        }
-        if (nextDeposits.length > 0) {
-          setDeposits(nextDeposits.sort((a, b) => b.date.localeCompare(a.date)));
-        }
-        if (nextNotice) {
-          setNotice(nextNotice);
-        }
-        if (nextRosters.length > 0) {
-          setRosters(nextRosters.sort((a, b) => a.date.localeCompare(b.date)));
-        }
-        if (nextLogs.length > 0) {
-          setActivityLogs(nextLogs.sort((a, b) => b.id - a.id));
-        }
+        if (nextMembers.length > 0) setMembers(nextMembers.sort((a, b) => a.id - b.id));
+        if (nextMeals.length > 0) setMeals(nextMeals);
+        if (nextExpenses.length > 0) setExpenses(nextExpenses.sort((a, b) => b.date.localeCompare(a.date)));
+        if (nextDeposits.length > 0) setDeposits(nextDeposits.sort((a, b) => b.date.localeCompare(a.date)));
+        if (nextNotice) setNotice(nextNotice);
+        if (nextRosters.length > 0) setRosters(nextRosters.sort((a, b) => a.date.localeCompare(b.date)));
+        if (nextLogs.length > 0) setActivityLogs(nextLogs.sort((a, b) => b.id - a.id));
       }
-    );
+    } catch (e) {
+      console.warn('Mongo fetch sync warning:', e);
+    }
+  };
 
-    const unsubJoin = subscribeJoinRequests(
-      currentUser.uid,
-      messId,
-      (reqs) => {
-        setJoinRequests(reqs);
-      }
-    );
-
-    return () => {
-      unsubDir();
-      unsubRecords();
-      unsubJoin();
-    };
-  }, [currentUser, messId]);
+  useEffect(() => {
+    syncWithMongo();
+    // Poll every 8 seconds for real-time collaboration across multiple users/devices
+    const timer = setInterval(() => {
+      syncWithMongo();
+    }, 8000);
+    return () => clearInterval(timer);
+  }, [messId]);
 
   const getCloudMeta = () => {
-    const uid = currentUser?.uid || 'offline_local_uid';
-    const effManagers =
-      managerUids.length > 0 ? managerUids : [uid];
-    const effMembers =
-      memberUids.length > 0
-        ? Array.from(new Set([...effManagers, ...memberUids, uid]))
-        : [uid];
+    const uid = currentUser?.username || 'admin';
+    const effManagers = [uid];
+    const effMembers = [uid];
     return {
       messCode: messId,
       memberUids: effMembers,
@@ -364,7 +304,7 @@ export default function MessManagerApp() {
       id: Date.now(),
       title,
       description,
-      actorName: currentUser?.displayName || (isManager ? 'Manager' : 'Member'),
+      actorName: currentUser?.name || (isManager ? 'Manager' : 'Member'),
       timeText: new Date().toLocaleString('en-US', {
         month: 'short',
         day: 'numeric',
@@ -375,7 +315,7 @@ export default function MessManagerApp() {
     };
     setActivityLogs((prev) => [logItem, ...prev.slice(0, 29)]);
     if (currentUser) {
-      upsertCloudMessRecord(
+      upsertMongoMessRecord(
         encodeActivityLogToCloud(logItem, getCloudMeta())
       ).catch(() => {});
     }
@@ -399,90 +339,25 @@ export default function MessManagerApp() {
   const cutoffTime = getMealCutoffTime(lockedDates);
   const tomorrowDate = `${monthKey}-22`;
 
-  // Handlers
-  const handleGoogleSignIn = async () => {
-    try {
-      setAuthNotice(null);
-      setAuthErrorCode(null);
-      const user = await signInWithGooglePopup();
-      if ((user.email || '').toLowerCase() === ADMIN_EMAIL.toLowerCase()) {
-        setIsManager(true);
-      }
-    } catch (err: unknown) {
-      const code = (err as { code?: string })?.code || '';
-      const msg = err instanceof Error ? err.message : 'Sign-in cancelled';
-      setAuthErrorCode(code);
-      setAuthNotice(
-        lang === 'bn'
-          ? `গুগল পপআপ সম্পন্ন হয়নি (${code || msg}) — নিচের বিকল্প ক্লাউড লগইন বা ডোমেইন সেটআপ দেখুন।`
-          : `Google Popup did not complete (${code || msg}) — Use the Cloud Connect options below.`
-      );
-      setShowCloudAuthModal(true);
-    }
-  };
-
-  const handleEmailPasswordSignIn = async (
-    email: string,
-    password: string,
-    displayName: string
-  ) => {
-    try {
-      setAuthNotice(null);
-      setAuthErrorCode(null);
-      const user = await signInOrRegisterWithEmail(email, password, displayName);
-      if ((user.email || '').toLowerCase() === ADMIN_EMAIL.toLowerCase()) {
-        setIsManager(true);
-      }
-      setShowCloudAuthModal(false);
-    } catch (err: unknown) {
-      const code = (err as { code?: string })?.code || '';
-      const msg = err instanceof Error ? err.message : 'Login error';
-      setAuthErrorCode(code);
-      setAuthNotice(msg);
-    }
-  };
-
-  const handleAnonymousCloudSignIn = async () => {
-    try {
-      setAuthNotice(null);
-      setAuthErrorCode(null);
-      await signInAnonymousCloud();
-      setShowCloudAuthModal(false);
-    } catch (err: unknown) {
-      const code = (err as { code?: string })?.code || '';
-      const msg = err instanceof Error ? err.message : 'Anonymous auth error';
-      setAuthErrorCode(code);
-      setAuthNotice(msg);
-    }
-  };
-
   const handleSignOut = async () => {
-    await signOutFirebase();
+    await logoutUser();
     setCurrentUser(null);
+    setIsManager(false);
     triggerToast(
-      lang === 'bn'
-        ? 'ক্লাউড থেকে লগআউট করা হয়েছে'
-        : 'Signed out from Cloud Sync',
-      lang === 'bn'
-        ? 'অফলাইন স্টোরেজ সক্রিয় রয়েছে'
-        : 'Offline storage remains active',
+      lang === 'bn' ? 'লগআউট করা হয়েছে' : 'Signed out successfully',
+      undefined,
       'info'
     );
   };
 
   const syncLockedDatesToCloud = (nextLocks: string[]) => {
     setLockedDates(nextLocks);
-    if (currentUser) {
-      const meta = getCloudMeta();
-      upsertMessDirectoryDoc({
-        messId,
-        messName,
-        managerPin,
-        managerUids: meta.managerUids,
-        memberUids: meta.memberUids,
-        lockedDates: nextLocks,
-      }).catch(() => {});
-    }
+    upsertMongoSettings({
+      messId,
+      messName,
+      managerPin,
+      lockedDates: nextLocks,
+    }).catch(() => {});
   };
 
   const handleToggleMonthLock = () => {
@@ -597,7 +472,7 @@ export default function MessManagerApp() {
     });
 
     if (currentUser) {
-      upsertCloudMessRecord(encodeMealToCloud(mealObj, getCloudMeta())).catch(
+      upsertMongoMessRecord(encodeMealToCloud(mealObj, getCloudMeta())).catch(
         () => {}
       );
     }
@@ -647,7 +522,7 @@ export default function MessManagerApp() {
         updatedMeals.push(mealObj);
       }
       if (currentUser) {
-        upsertCloudMessRecord(encodeMealToCloud(mealObj, meta)).catch(() => {});
+        upsertMongoMessRecord(encodeMealToCloud(mealObj, meta)).catch(() => {});
       }
     });
 
@@ -689,7 +564,7 @@ export default function MessManagerApp() {
         : [expObj, ...prev]
     );
     if (currentUser) {
-      upsertCloudMessRecord(encodeExpenseToCloud(expObj, getCloudMeta())).catch(
+      upsertMongoMessRecord(encodeExpenseToCloud(expObj, getCloudMeta())).catch(
         () => {}
       );
     }
@@ -729,7 +604,7 @@ export default function MessManagerApp() {
       onConfirm: () => {
         setExpenses((prev) => prev.filter((e) => e.id !== id));
         if (currentUser) {
-          deleteCloudMessRecord(cloudRecordId(`EXPENSE_${id}`, messId)).catch(
+          deleteMongoMessRecord(cloudRecordId(`EXPENSE_${id}`, messId)).catch(
             () => {}
           );
         }
@@ -765,7 +640,7 @@ export default function MessManagerApp() {
         : [depObj, ...prev]
     );
     if (currentUser) {
-      upsertCloudMessRecord(encodeDepositToCloud(depObj, getCloudMeta())).catch(
+      upsertMongoMessRecord(encodeDepositToCloud(depObj, getCloudMeta())).catch(
         () => {}
       );
     }
@@ -807,7 +682,7 @@ export default function MessManagerApp() {
       onConfirm: () => {
         setDeposits((prev) => prev.filter((d) => d.id !== id));
         if (currentUser) {
-          deleteCloudMessRecord(cloudRecordId(`DEPOSIT_${id}`, messId)).catch(
+          deleteMongoMessRecord(cloudRecordId(`DEPOSIT_${id}`, messId)).catch(
             () => {}
           );
         }
@@ -844,7 +719,7 @@ export default function MessManagerApp() {
         : [...prev, memberObj]
     );
     if (currentUser) {
-      upsertCloudMessRecord(
+      upsertMongoMessRecord(
         encodeMemberToCloud(memberObj, getCloudMeta())
       ).catch(() => {});
     }
@@ -872,7 +747,7 @@ export default function MessManagerApp() {
     const updated: Member = { ...target, isActive: !target.isActive };
     setMembers((prev) => prev.map((m) => (m.id === memberId ? updated : m)));
     if (currentUser) {
-      upsertCloudMessRecord(encodeMemberToCloud(updated, getCloudMeta())).catch(
+      upsertMongoMessRecord(encodeMemberToCloud(updated, getCloudMeta())).catch(
         () => {}
       );
     }
@@ -913,7 +788,7 @@ export default function MessManagerApp() {
       onConfirm: () => {
         setMembers((prev) => prev.filter((m) => m.id !== memberId));
         if (currentUser) {
-          deleteCloudMessRecord(cloudRecordId(`MEMBER_${memberId}`, messId)).catch(
+          deleteMongoMessRecord(cloudRecordId(`MEMBER_${memberId}`, messId)).catch(
             () => {}
           );
         }
@@ -936,7 +811,7 @@ export default function MessManagerApp() {
   const handleSaveNotice = (updated: NoticeItem) => {
     setNotice(updated);
     if (currentUser) {
-      upsertCloudMessRecord(encodeNoticeToCloud(updated, getCloudMeta())).catch(
+      upsertMongoMessRecord(encodeNoticeToCloud(updated, getCloudMeta())).catch(
         () => {}
       );
     }
@@ -962,7 +837,7 @@ export default function MessManagerApp() {
     };
     setRosters((prev) => [item, ...prev]);
     if (currentUser) {
-      upsertCloudMessRecord(encodeRosterToCloud(item, getCloudMeta())).catch(
+      upsertMongoMessRecord(encodeRosterToCloud(item, getCloudMeta())).catch(
         () => {}
       );
     }
@@ -984,7 +859,7 @@ export default function MessManagerApp() {
     };
     setRosters((prev) => prev.map((r) => (r.id === rosterId ? updated : r)));
     if (currentUser) {
-      upsertCloudMessRecord(encodeRosterToCloud(updated, getCloudMeta())).catch(
+      upsertMongoMessRecord(encodeRosterToCloud(updated, getCloudMeta())).catch(
         () => {}
       );
     }
@@ -1019,7 +894,7 @@ export default function MessManagerApp() {
       onConfirm: () => {
         setRosters((prev) => prev.filter((r) => r.id !== rosterId));
         if (currentUser) {
-          deleteCloudMessRecord(
+          deleteMongoMessRecord(
             cloudRecordId(`AUDIT_ROSTER_${rosterId}`, messId)
           ).catch(() => {});
         }
@@ -1036,7 +911,7 @@ export default function MessManagerApp() {
 
   const handleSimulateJoinRequest = (userName: string, userEmail: string) => {
     const req: JoinRequestItem = {
-      userId: currentUser?.uid || `req_${Date.now()}`,
+      userId: currentUser?.id || `req_${Date.now()}`,
       userName,
       userEmail,
       messId,
@@ -1044,9 +919,6 @@ export default function MessManagerApp() {
       managerUids: getCloudMeta().managerUids,
     };
     setJoinRequests((prev) => [req, ...prev]);
-    if (currentUser) {
-      upsertJoinRequest(req).catch(() => {});
-    }
     triggerToast(
       lang === 'bn'
         ? `মেস জয়েন রিকোয়েস্ট পাঠানো হয়েছে`
@@ -1073,9 +945,6 @@ export default function MessManagerApp() {
       notes: req.userId,
       isActive: true,
     });
-    if (currentUser) {
-      upsertJoinRequest({ ...req, status: 'APPROVED' }).catch(() => {});
-    }
     triggerToast(
       lang === 'bn'
         ? `জয়েন রিকোয়েস্ট অনুমোদন (Approve) করা হয়েছে!`
@@ -1091,9 +960,6 @@ export default function MessManagerApp() {
         r.userId === req.userId ? { ...r, status: 'REJECTED' } : r
       )
     );
-    if (currentUser) {
-      upsertJoinRequest({ ...req, status: 'REJECTED' }).catch(() => {});
-    }
     triggerToast(
       lang === 'bn'
         ? `জয়েন রিকোয়েস্ট বাতিল (Reject) করা হয়েছে`
@@ -1104,36 +970,33 @@ export default function MessManagerApp() {
   };
 
   const handleForceCloudPush = async () => {
-    if (!currentUser) return;
     const meta = getCloudMeta();
-    await upsertMessDirectoryDoc({
+    await upsertMongoSettings({
       messId,
       messName,
       managerPin,
-      managerUids: meta.managerUids,
-      memberUids: meta.memberUids,
       lockedDates,
     });
     for (const m of members) {
-      await upsertCloudMessRecord(encodeMemberToCloud(m, meta));
+      await upsertMongoMessRecord(encodeMemberToCloud(m, meta));
     }
     for (const meal of meals) {
-      await upsertCloudMessRecord(encodeMealToCloud(meal, meta));
+      await upsertMongoMessRecord(encodeMealToCloud(meal, meta));
     }
     for (const exp of expenses) {
-      await upsertCloudMessRecord(encodeExpenseToCloud(exp, meta));
+      await upsertMongoMessRecord(encodeExpenseToCloud(exp, meta));
     }
     for (const dep of deposits) {
-      await upsertCloudMessRecord(encodeDepositToCloud(dep, meta));
+      await upsertMongoMessRecord(encodeDepositToCloud(dep, meta));
     }
-    await upsertCloudMessRecord(encodeNoticeToCloud(notice, meta));
+    await upsertMongoMessRecord(encodeNoticeToCloud(notice, meta));
     for (const r of rosters) {
-      await upsertCloudMessRecord(encodeRosterToCloud(r, meta));
+      await upsertMongoMessRecord(encodeRosterToCloud(r, meta));
     }
     triggerToast(
       lang === 'bn'
-        ? 'সব ডেটা ফায়ারবেস ক্লাউডে সিঙ্ক হয়েছে!'
-        : 'All records synced to Firebase Cloud!',
+        ? 'সব ডেটা MongoDB Atlas ক্লাউডে সিঙ্ক হয়েছে!'
+        : 'All records synced to MongoDB Atlas!',
       `Mess Code: ${messId}`,
       'success'
     );
@@ -1210,8 +1073,9 @@ export default function MessManagerApp() {
         onToggleMonthLock={handleToggleMonthLock}
         onOpenMessSwitcher={() => setShowMessSwitcher(true)}
         isOnlineSynced={Boolean(currentUser)}
-        userEmail={currentUser ? (currentUser.email || 'Cloud Connected') : null}
-        onGoogleSignIn={handleGoogleSignIn}
+        currentUser={currentUser}
+        onOpenLogin={() => setShowLoginModal(true)}
+        onOpenUserManagement={() => setShowUserManagementModal(true)}
         onSignOut={handleSignOut}
         activeTab={activeTab}
         onSelectTab={setActiveTab}
@@ -1225,10 +1089,10 @@ export default function MessManagerApp() {
             <div className="flex items-center gap-2">
               <button
                 type="button"
-                onClick={() => setShowCloudAuthModal(true)}
+                onClick={() => setShowLoginModal(true)}
                 className="px-2.5 py-1 rounded-lg bg-[#173125] text-[#FED24F] font-semibold"
               >
-                {lang === 'bn' ? 'ক্লাউড ও .env সেটআপ' : 'Cloud & .env Setup'}
+                {lang === 'bn' ? 'লগইন করুন' : 'Login'}
               </button>
               <button
                 type="button"
@@ -1469,17 +1333,12 @@ export default function MessManagerApp() {
           setMessId(nextId);
           setMessName(nextName);
           setManagerPin(nextPin);
-          if (currentUser) {
-            const meta = getCloudMeta();
-            upsertMessDirectoryDoc({
-              messId: nextId,
-              messName: nextName,
-              managerPin: nextPin,
-              managerUids: meta.managerUids,
-              memberUids: meta.memberUids,
-              lockedDates,
-            }).catch(() => {});
-          }
+          upsertMongoSettings({
+            messId: nextId,
+            messName: nextName,
+            managerPin: nextPin,
+            lockedDates,
+          }).catch(() => {});
           triggerToast(
             lang === 'bn'
               ? `মেস সেটিংস আপডেট হয়েছে: ${nextName} (${nextId})`
@@ -1527,16 +1386,33 @@ export default function MessManagerApp() {
         onForceCloudPush={handleForceCloudPush}
       />
 
-      {/* Cloud Auth, Authorized Domain Fix & .env Modal */}
-      <CloudAuthModal
+      {/* Mongo Login Modal */}
+      <MongoLoginModal
         lang={lang}
-        isOpen={showCloudAuthModal}
-        onClose={() => setShowCloudAuthModal(false)}
-        authErrorCode={authErrorCode}
-        authErrorMessage={authNotice}
-        onGooglePopupSignIn={handleGoogleSignIn}
-        onEmailPasswordSignIn={handleEmailPasswordSignIn}
-        onAnonymousCloudSignIn={handleAnonymousCloudSignIn}
+        isOpen={showLoginModal}
+        onClose={() => setShowLoginModal(false)}
+        onLoginSuccess={(user) => {
+          setCurrentUser(user);
+          if (user.role === 'SUPER_ADMIN' || user.role === 'ADMIN') {
+            setIsManager(true);
+          } else {
+            setIsManager(false);
+          }
+          triggerToast(
+            lang === 'bn' ? `স্বাগতম, ${user.name}!` : `Welcome, ${user.name}!`,
+            `Role: ${user.role}`,
+            'success'
+          );
+        }}
+      />
+
+      {/* User & Role Management Modal (Super Admin / Admin) */}
+      <UserManagementModal
+        lang={lang}
+        isOpen={showUserManagementModal}
+        onClose={() => setShowUserManagementModal(false)}
+        currentUser={currentUser}
+        members={members}
       />
 
       {/* Global Action Toast & Delete Confirmation Modal */}
