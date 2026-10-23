@@ -145,23 +145,25 @@ export function HeaderBar({
 
         {/* Zone 3: Controls & Responsive User Dropdown */}
         <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-          {/* Mess switcher / code */}
-          <button
-            type="button"
-            onClick={onOpenMessSwitcher}
-            className="min-h-[38px] sm:min-h-[40px] px-2.5 sm:px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/15 text-xs font-medium text-white flex items-center gap-1 sm:gap-1.5 whitespace-nowrap shrink-0 transition-colors"
-            title={lang === 'bn' ? 'মেস কোড সেটিংস' : 'Mess Code Settings'}
-          >
-            <KeyRound className="w-3.5 h-3.5 text-[#FED24F]" />
-            <span className="hidden md:inline">
-              {currentUser?.role === 'SUPER_ADMIN'
-                ? 'Super Admin'
-                : isManager
-                  ? (lang === 'bn' ? 'ম্যানেজার' : 'Manager')
-                  : (lang === 'bn' ? 'মেম্বার' : 'Member')}
-            </span>
-            <span className="text-[#B2D959] font-numeric font-bold">{messId}</span>
-          </button>
+          {/* Mess switcher / code - Visible ONLY to Super Admin and Admin */}
+          {isAdmin && (
+            <button
+              type="button"
+              onClick={onOpenMessSwitcher}
+              className="min-h-[38px] sm:min-h-[40px] px-2.5 sm:px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/15 text-xs font-medium text-white flex items-center gap-1 sm:gap-1.5 whitespace-nowrap shrink-0 transition-colors"
+              title={lang === 'bn' ? 'মেস কোড সেটিংস' : 'Mess Code Settings'}
+            >
+              <KeyRound className="w-3.5 h-3.5 text-[#FED24F]" />
+              <span className="hidden md:inline">
+                {currentUser?.role === 'SUPER_ADMIN'
+                  ? 'Super Admin'
+                  : lang === 'bn'
+                    ? 'ম্যানেজার'
+                    : 'Manager'}
+              </span>
+              <span className="text-[#B2D959] font-numeric font-bold">{messId}</span>
+            </button>
+          )}
 
           {/* Language Toggle */}
           <button
@@ -239,20 +241,22 @@ export function HeaderBar({
                       </button>
                     )}
 
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setShowUserDropdown(false);
-                        onOpenMessSwitcher();
-                      }}
-                      className="w-full text-left px-4 py-2 text-xs text-slate-200 hover:bg-slate-800 flex items-center gap-2.5 transition"
-                    >
-                      <KeyRound className="w-4 h-4 text-emerald-400" />
-                      <div>
-                        <div className="font-medium text-white">{lang === 'bn' ? 'মেস কোড ও সেটিংস' : 'Mess Code Settings'}</div>
-                        <div className="text-[10px] text-slate-400">{lang === 'bn' ? 'মেস পরিবর্তন অথবা পিন পরিবর্তন' : 'Change Mess or PIN'}</div>
-                      </div>
-                    </button>
+                    {isAdmin && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowUserDropdown(false);
+                          onOpenMessSwitcher();
+                        }}
+                        className="w-full text-left px-4 py-2 text-xs text-slate-200 hover:bg-slate-800 flex items-center gap-2.5 transition"
+                      >
+                        <KeyRound className="w-4 h-4 text-emerald-400" />
+                        <div>
+                          <div className="font-medium text-white">{lang === 'bn' ? 'মেস কোড ও সেটিংস' : 'Mess Code Settings'}</div>
+                          <div className="text-[10px] text-slate-400">{lang === 'bn' ? 'মেস পরিবর্তন অথবা পিন পরিবর্তন' : 'Change Mess or PIN'}</div>
+                        </div>
+                      </button>
+                    )}
                   </div>
 
                   {/* Sign Out Action */}
