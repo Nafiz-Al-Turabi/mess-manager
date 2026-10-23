@@ -1,14 +1,34 @@
 @import "tailwindcss";
 
 @layer base {
+  html {
+    -webkit-tap-highlight-color: transparent;
+    scroll-behavior: smooth;
+  }
+
   body {
     font-family: var(--font-bengali), var(--font-sans), system-ui, -apple-system, sans-serif;
+    touch-action: manipulation;
   }
 
   .font-numeric {
     font-family: var(--font-bengali), var(--font-sans), var(--font-mono), system-ui, sans-serif;
     font-variant-numeric: tabular-nums;
   }
+}
+
+/* Custom smooth mobile scrollbar hide */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Safe area support for notched phones */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 16px);
 }
 
 .tabular-nums {

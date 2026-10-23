@@ -337,9 +337,9 @@ export function MealsTab({
                       disabled={!canEdit}
                       onClick={() => adjust(b - breakfastWeight, l, d, g)}
                       aria-label={`Decrease breakfast for ${member.name}`}
-                      className="w-8 h-8 rounded-lg bg-white border border-slate-200 flex items-center justify-center text-[#173125] hover:bg-slate-100 disabled:opacity-40"
+                      className="w-9 h-9 sm:w-8 sm:h-8 rounded-lg bg-white border border-slate-200 flex items-center justify-center text-[#173125] active:scale-95 hover:bg-slate-100 disabled:opacity-40 transition-transform touch-manipulation"
                     >
-                      <Minus className="w-3.5 h-3.5" />
+                      <Minus className="w-4 h-4 sm:w-3.5 sm:h-3.5" />
                     </button>
                     <span className="w-9 text-center font-numeric font-bold text-sm text-[#173125]">
                       {b.toFixed(1)}
@@ -349,9 +349,9 @@ export function MealsTab({
                       disabled={!canEdit}
                       onClick={() => adjust(b + breakfastWeight, l, d, g)}
                       aria-label={`Increase breakfast for ${member.name}`}
-                      className="w-8 h-8 rounded-lg bg-[#173125] text-[#FED24F] flex items-center justify-center hover:bg-[#438A53] disabled:opacity-40"
+                      className="w-9 h-9 sm:w-8 sm:h-8 rounded-lg bg-[#173125] text-[#FED24F] flex items-center justify-center active:scale-95 hover:bg-[#438A53] disabled:opacity-40 transition-transform touch-manipulation"
                     >
-                      <Plus className="w-3.5 h-3.5" />
+                      <Plus className="w-4 h-4 sm:w-3.5 sm:h-3.5" />
                     </button>
                   </div>
                 </div>
@@ -367,9 +367,9 @@ export function MealsTab({
                       disabled={!canEdit}
                       onClick={() => adjust(b, l - 1, d, g)}
                       aria-label={`Decrease lunch for ${member.name}`}
-                      className="w-8 h-8 rounded-lg bg-white border border-slate-200 flex items-center justify-center text-[#173125] hover:bg-slate-100 disabled:opacity-40"
+                      className="w-9 h-9 sm:w-8 sm:h-8 rounded-lg bg-white border border-slate-200 flex items-center justify-center text-[#173125] active:scale-95 hover:bg-slate-100 disabled:opacity-40 transition-transform touch-manipulation"
                     >
-                      <Minus className="w-3.5 h-3.5" />
+                      <Minus className="w-4 h-4 sm:w-3.5 sm:h-3.5" />
                     </button>
                     <span className="w-9 text-center font-numeric font-bold text-sm text-[#173125]">
                       {l.toFixed(1)}
@@ -379,9 +379,9 @@ export function MealsTab({
                       disabled={!canEdit}
                       onClick={() => adjust(b, l + 1, d, g)}
                       aria-label={`Increase lunch for ${member.name}`}
-                      className="w-8 h-8 rounded-lg bg-[#173125] text-[#FED24F] flex items-center justify-center hover:bg-[#438A53] disabled:opacity-40"
+                      className="w-9 h-9 sm:w-8 sm:h-8 rounded-lg bg-[#173125] text-[#FED24F] flex items-center justify-center active:scale-95 hover:bg-[#438A53] disabled:opacity-40 transition-transform touch-manipulation"
                     >
-                      <Plus className="w-3.5 h-3.5" />
+                      <Plus className="w-4 h-4 sm:w-3.5 sm:h-3.5" />
                     </button>
                   </div>
                 </div>
@@ -397,9 +397,9 @@ export function MealsTab({
                       disabled={!canEdit}
                       onClick={() => adjust(b, l, d - 1, g)}
                       aria-label={`Decrease dinner for ${member.name}`}
-                      className="w-8 h-8 rounded-lg bg-white border border-slate-200 flex items-center justify-center text-[#173125] hover:bg-slate-100 disabled:opacity-40"
+                      className="w-9 h-9 sm:w-8 sm:h-8 rounded-lg bg-white border border-slate-200 flex items-center justify-center text-[#173125] active:scale-95 hover:bg-slate-100 disabled:opacity-40 transition-transform touch-manipulation"
                     >
-                      <Minus className="w-3.5 h-3.5" />
+                      <Minus className="w-4 h-4 sm:w-3.5 sm:h-3.5" />
                     </button>
                     <span className="w-9 text-center font-numeric font-bold text-sm text-[#173125]">
                       {d.toFixed(1)}
@@ -409,9 +409,9 @@ export function MealsTab({
                       disabled={!canEdit}
                       onClick={() => adjust(b, l, d + 1, g)}
                       aria-label={`Increase dinner for ${member.name}`}
-                      className="w-8 h-8 rounded-lg bg-[#173125] text-[#FED24F] flex items-center justify-center hover:bg-[#438A53] disabled:opacity-40"
+                      className="w-9 h-9 sm:w-8 sm:h-8 rounded-lg bg-[#173125] text-[#FED24F] flex items-center justify-center active:scale-95 hover:bg-[#438A53] disabled:opacity-40 transition-transform touch-manipulation"
                     >
-                      <Plus className="w-3.5 h-3.5" />
+                      <Plus className="w-4 h-4 sm:w-3.5 sm:h-3.5" />
                     </button>
                   </div>
                 </div>
@@ -427,9 +427,9 @@ export function MealsTab({
                       disabled={!canEdit}
                       onClick={() => adjust(b, l, d, g - 1)}
                       aria-label={`Decrease guest meal for ${member.name}`}
-                      className="w-8 h-8 rounded-lg bg-white border border-slate-200 flex items-center justify-center text-[#173125] hover:bg-slate-100 disabled:opacity-40"
+                      className="w-9 h-9 sm:w-8 sm:h-8 rounded-lg bg-white border border-slate-200 flex items-center justify-center text-[#173125] active:scale-95 hover:bg-slate-100 disabled:opacity-40 transition-transform touch-manipulation"
                     >
-                      <Minus className="w-3.5 h-3.5" />
+                      <Minus className="w-4 h-4 sm:w-3.5 sm:h-3.5" />
                     </button>
                     <span className="w-9 text-center font-numeric font-bold text-sm text-[#438A53]">
                       {g.toFixed(1)}
@@ -439,9 +439,9 @@ export function MealsTab({
                       disabled={!canEdit}
                       onClick={() => adjust(b, l, d, g + 1)}
                       aria-label={`Increase guest meal for ${member.name}`}
-                      className="w-8 h-8 rounded-lg bg-[#438A53] text-white flex items-center justify-center hover:bg-[#173125] disabled:opacity-40"
+                      className="w-9 h-9 sm:w-8 sm:h-8 rounded-lg bg-[#438A53] text-white flex items-center justify-center active:scale-95 hover:bg-[#173125] disabled:opacity-40 transition-transform touch-manipulation"
                     >
-                      <Plus className="w-3.5 h-3.5" />
+                      <Plus className="w-4 h-4 sm:w-3.5 sm:h-3.5" />
                     </button>
                   </div>
                 </div>

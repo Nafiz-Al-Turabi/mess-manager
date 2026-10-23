@@ -1087,7 +1087,7 @@ export default function MessManagerApp() {
       )}
 
       {/* Main Content Container */}
-      <main className="max-w-7xl mx-auto w-full px-4 sm:px-6 pt-6 flex-1">
+      <main className="max-w-7xl mx-auto w-full px-3 sm:px-6 pt-4 sm:pt-6 pb-24 lg:pb-12 flex-1">
         {!currentUser && authChecked ? (
           <div className="flex flex-col items-center justify-center py-20 px-4 text-center">
             <div className="w-16 h-16 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 mb-4 shadow-lg">
@@ -1237,21 +1237,23 @@ export default function MessManagerApp() {
       {/* Mobile Fixed Bottom Navigation Bar (5 Tabs) */}
       <nav
         aria-label="Mobile Bottom Navigation"
-        className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200 grid grid-cols-5 items-center h-16 px-1 no-print"
+        className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#173125]/95 backdrop-blur-lg border-t border-[#438A53]/30 grid grid-cols-5 items-center h-16 px-1 shadow-[0_-4px_20px_rgba(0,0,0,0.15)] pb-safe no-print"
       >
         <button
           type="button"
           onClick={() => setActiveTab('home')}
-          className={`flex flex-col items-center justify-center min-h-[48px] transition-colors ${
-            activeTab === 'home' ? 'text-[#173125] font-bold' : 'text-slate-500'
+          className={`flex flex-col items-center justify-center min-h-[48px] py-1 transition-all ${
+            activeTab === 'home'
+              ? 'text-[#FED24F] font-bold scale-105'
+              : 'text-white/60 hover:text-white'
           }`}
         >
           <Home
-            className={`w-5 h-5 ${
-              activeTab === 'home' ? 'text-[#438A53]' : 'text-slate-400'
+            className={`w-5 h-5 transition-transform ${
+              activeTab === 'home' ? 'text-[#FED24F]' : 'text-white/60'
             }`}
           />
-          <span className="text-[11px] mt-0.5 whitespace-nowrap">
+          <span className="text-[10px] mt-1 font-medium whitespace-nowrap">
             {lang === 'bn' ? 'হোম' : 'Home'}
           </span>
         </button>
@@ -1259,16 +1261,18 @@ export default function MessManagerApp() {
         <button
           type="button"
           onClick={() => setActiveTab('meals')}
-          className={`flex flex-col items-center justify-center min-h-[48px] transition-colors ${
-            activeTab === 'meals' ? 'text-[#173125] font-bold' : 'text-slate-500'
+          className={`flex flex-col items-center justify-center min-h-[48px] py-1 transition-all ${
+            activeTab === 'meals'
+              ? 'text-[#FED24F] font-bold scale-105'
+              : 'text-white/60 hover:text-white'
           }`}
         >
           <Utensils
-            className={`w-5 h-5 ${
-              activeTab === 'meals' ? 'text-[#438A53]' : 'text-slate-400'
+            className={`w-5 h-5 transition-transform ${
+              activeTab === 'meals' ? 'text-[#FED24F]' : 'text-white/60'
             }`}
           />
-          <span className="text-[11px] mt-0.5 whitespace-nowrap">
+          <span className="text-[10px] mt-1 font-medium whitespace-nowrap">
             {lang === 'bn' ? 'মিল' : 'Meals'}
           </span>
         </button>
@@ -1276,18 +1280,18 @@ export default function MessManagerApp() {
         <button
           type="button"
           onClick={() => setActiveTab('expenses')}
-          className={`flex flex-col items-center justify-center min-h-[48px] transition-colors ${
+          className={`flex flex-col items-center justify-center min-h-[48px] py-1 transition-all ${
             activeTab === 'expenses'
-              ? 'text-[#173125] font-bold'
-              : 'text-slate-500'
+              ? 'text-[#FED24F] font-bold scale-105'
+              : 'text-white/60 hover:text-white'
           }`}
         >
           <ShoppingBag
-            className={`w-5 h-5 ${
-              activeTab === 'expenses' ? 'text-[#438A53]' : 'text-slate-400'
+            className={`w-5 h-5 transition-transform ${
+              activeTab === 'expenses' ? 'text-[#FED24F]' : 'text-white/60'
             }`}
           />
-          <span className="text-[11px] mt-0.5 whitespace-nowrap">
+          <span className="text-[10px] mt-1 font-medium whitespace-nowrap">
             {lang === 'bn' ? 'খরচ' : 'Expenses'}
           </span>
         </button>
@@ -1295,18 +1299,18 @@ export default function MessManagerApp() {
         <button
           type="button"
           onClick={() => setActiveTab('deposits')}
-          className={`flex flex-col items-center justify-center min-h-[48px] transition-colors ${
+          className={`flex flex-col items-center justify-center min-h-[48px] py-1 transition-all ${
             activeTab === 'deposits'
-              ? 'text-[#173125] font-bold'
-              : 'text-slate-500'
+              ? 'text-[#FED24F] font-bold scale-105'
+              : 'text-white/60 hover:text-white'
           }`}
         >
           <Wallet
-            className={`w-5 h-5 ${
-              activeTab === 'deposits' ? 'text-[#438A53]' : 'text-slate-400'
+            className={`w-5 h-5 transition-transform ${
+              activeTab === 'deposits' ? 'text-[#FED24F]' : 'text-white/60'
             }`}
           />
-          <span className="text-[11px] mt-0.5 whitespace-nowrap">
+          <span className="text-[10px] mt-1 font-medium whitespace-nowrap">
             {lang === 'bn' ? 'জমা' : 'Deposits'}
           </span>
         </button>
@@ -1314,18 +1318,18 @@ export default function MessManagerApp() {
         <button
           type="button"
           onClick={() => setActiveTab('reports')}
-          className={`flex flex-col items-center justify-center min-h-[48px] transition-colors ${
+          className={`flex flex-col items-center justify-center min-h-[48px] py-1 transition-all ${
             activeTab === 'reports'
-              ? 'text-[#173125] font-bold'
-              : 'text-slate-500'
+              ? 'text-[#FED24F] font-bold scale-105'
+              : 'text-white/60 hover:text-white'
           }`}
         >
           <FileSpreadsheet
-            className={`w-5 h-5 ${
-              activeTab === 'reports' ? 'text-[#438A53]' : 'text-slate-400'
+            className={`w-5 h-5 transition-transform ${
+              activeTab === 'reports' ? 'text-[#FED24F]' : 'text-white/60'
             }`}
           />
-          <span className="text-[11px] mt-0.5 whitespace-nowrap">
+          <span className="text-[10px] mt-1 font-medium whitespace-nowrap">
             {lang === 'bn' ? 'রিপোর্ট' : 'Reports'}
           </span>
         </button>
