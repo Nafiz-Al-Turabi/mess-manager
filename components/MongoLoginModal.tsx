@@ -126,14 +126,14 @@ export function MongoLoginModal({
 
           <div className="mt-4 p-3 bg-slate-950/60 border border-slate-800/80 rounded-xl text-[11px] text-slate-400 space-y-1">
             <p className="font-semibold text-slate-300">
-              🔑 {lang === 'bn' ? 'ডিফল্ট সুপার এডমিন অ্যাক্সেস:' : 'Default Super Admin Access:'}
+              🔑 {lang === 'bn' ? 'সুপার এডমিন অ্যাক্সেস:' : 'Super Admin Access:'}
             </p>
-            <p>Username: <code className="text-emerald-400">admin</code></p>
-            <p>Password: <code className="text-emerald-400">admin123</code></p>
+            <p>Email: <code className="text-emerald-400">nafizalturabi@gmail.com</code></p>
+            <p>Password: <code className="text-emerald-400">12345678</code></p>
             <p className="text-[10px] text-slate-500 mt-1">
               {lang === 'bn'
-                ? '* লগইন করার পর ইউজার ম্যানেজমেন্ট প্যানেল থেকে পাসওয়ার্ড পরিবর্তন করে নিতে পারবেন।'
-                : '* You can change this password after logging in from User Management.'}
+                ? '* লগইন করার পর ইউজার ম্যানেজমেন্ট প্যানেল থেকে যেকোনো সময় পাসওয়ার্ড পরিবর্তন করতে পারবেন।'
+                : '* You can change this password anytime after logging in.'}
             </p>
           </div>
         </form>

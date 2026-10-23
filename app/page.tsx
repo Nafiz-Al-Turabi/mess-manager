@@ -6,6 +6,7 @@ import {
   Home,
   ShoppingBag,
   Utensils,
+  UtensilsCrossed,
   Wallet,
 } from 'lucide-react';
 import {
@@ -121,6 +122,7 @@ export default function MessManagerApp() {
 
   // Auth & Role State
   const [currentUser, setCurrentUser] = useState<AppUser | null>(null);
+  const [authChecked, setAuthChecked] = useState<boolean>(false);
   const [isManager, setIsManager] = useState<boolean>(true);
   const [authNotice, setAuthNotice] = useState<string | null>(null);
   const [authErrorCode, setAuthErrorCode] = useState<string | null>(null);
@@ -214,16 +216,20 @@ export default function MessManagerApp() {
 
   // Check currently logged in user on initial load
   useEffect(() => {
-    fetchCurrentUser().then((user) => {
-      if (user) {
-        setCurrentUser(user);
-        if (user.role === 'SUPER_ADMIN' || user.role === 'ADMIN') {
-          setIsManager(true);
-        } else {
-          setIsManager(false);
+    fetchCurrentUser()
+      .then((user) => {
+        if (user) {
+          setCurrentUser(user);
+          if (user.role === 'SUPER_ADMIN' || user.role === 'ADMIN') {
+            setIsManager(true);
+          } else {
+            setIsManager(false);
+          }
         }
-      }
-    });
+      })
+      .finally(() => {
+        setAuthChecked(true);
+      });
   }, []);
 
   // MongoDB Real-time Sync and Periodic Polling
@@ -1108,8 +1114,36 @@ export default function MessManagerApp() {
 
       {/* Main Content Container */}
       <main className="max-w-7xl mx-auto w-full px-4 sm:px-6 pt-6 flex-1">
-        {activeTab === 'home' && (
-          <HomeTab
+        {!currentUser && authChecked ? (
+          <div className="flex flex-col items-center justify-center py-20 px-4 text-center">
+            <div className="w-16 h-16 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 mb-4 shadow-lg">
+              <UtensilsCrossed className="w-8 h-8" />
+            </div>
+            <h2 className="text-xl sm:text-2xl font-bold text-slate-800 dark:text-white tracking-tight mb-2">
+              {lang === 'bn' ? 'মেস ম্যানেজারে স্বাগতম' : 'Welcome to Mess Manager'}
+            </h2>
+            <p className="text-sm text-slate-600 dark:text-slate-400 max-w-md mb-6">
+              {lang === 'bn'
+                ? 'মেসের যাবতীয় মিল, বাজার খরচ এবং জমা দেখতে বা হিসাব নিয়ন্ত্রণ করতে অনুগ্রহ করে আপনার অ্যাকাউন্টে লগইন করুন।'
+                : 'Please sign in to your account to view meals, daily expenses, member balances, and mess reports.'}
+            </p>
+            <button
+              onClick={() => setShowLoginModal(true)}
+              className="inline-flex items-center gap-2 px-6 py-3 bg-[#438A53] hover:bg-[#346d41] text-white font-semibold text-sm rounded-xl shadow-lg transition transform hover:-translate-y-0.5 cursor-pointer"
+            >
+              <Utensils className="w-4 h-4" />
+              <span>{lang === 'bn' ? 'লগইন করে প্রবেশ করুন' : 'Sign In with Credentials'}</span>
+            </button>
+          </div>
+        ) : !authChecked ? (
+          <div className="flex flex-col items-center justify-center py-24 text-slate-400">
+            <div className="w-8 h-8 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin mb-3" />
+            <p className="text-xs">{lang === 'bn' ? 'লোড হচ্ছে...' : 'Loading Mess Manager...'}</p>
+          </div>
+        ) : (
+          <>
+            {activeTab === 'home' && (
+              <HomeTab
             lang={lang}
             messId={messId}
             messName={messName}
@@ -1220,6 +1254,8 @@ export default function MessManagerApp() {
               )
             }
           />
+        )}
+          </>
         )}
       </main>
 

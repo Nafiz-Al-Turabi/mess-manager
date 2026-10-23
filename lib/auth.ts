@@ -52,30 +52,26 @@ export async function getAuthUser(req: NextRequest): Promise<TokenPayload | null
 
 /**
  * Ensures default super admin exists in DB.
- * Username: admin
- * Default password: admin123 (can be changed)
+ * Email / Username: nafizalturabi@gmail.com / nafizalturabi
+ * Default password: 12345678 (can be changed)
  */
 export async function ensureDefaultSuperAdmin() {
   await connectToDatabase();
-  const existingSuperAdmin = await UserModel.findOne({ role: 'SUPER_ADMIN' });
+  const existingSuperAdmin = await UserModel.findOne({
+    $or: [{ email: 'nafizalturabi@gmail.com' }, { username: 'nafizalturabi' }],
+  });
   if (!existingSuperAdmin) {
-    const adminUser = await UserModel.findOne({ username: 'admin' });
-    if (!adminUser) {
-      const passwordHash = await hashPassword('admin123');
-      await UserModel.create({
-        username: 'admin',
-        email: 'nafizalturabi18cse@gmail.com',
-        name: 'Super Admin',
-        passwordHash,
-        role: 'SUPER_ADMIN',
-        isActive: true,
-        messId: '9D',
-      });
-      console.log('Default super admin created: admin / admin123');
-    } else {
-      adminUser.role = 'SUPER_ADMIN';
-      await adminUser.save();
-    }
+    const passwordHash = await hashPassword('12345678');
+    await UserModel.create({
+      username: 'nafizalturabi',
+      email: 'nafizalturabi@gmail.com',
+      name: 'Nafiz Al Turabi',
+      passwordHash,
+      role: 'SUPER_ADMIN',
+      isActive: true,
+      messId: '9D',
+    });
+    console.log('Default super admin created: nafizalturabi@gmail.com / 12345678');
   }
 }
 
