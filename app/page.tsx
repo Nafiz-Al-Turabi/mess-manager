@@ -81,7 +81,7 @@ import {
 const STORAGE_KEY_PREFIX = 'mess_hisab_state_v1_';
 
 export default function MessManagerApp() {
-  const [lang, setLang] = useState<Language>('bn');
+  const [lang, setLang] = useState<Language>('en');
   const [activeTab, setActiveTab] = useState<
     'home' | 'meals' | 'expenses' | 'deposits' | 'reports'
   >('home');
