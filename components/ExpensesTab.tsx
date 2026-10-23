@@ -168,7 +168,7 @@ export function ExpensesTab({
             <button
               type="button"
               onClick={openAddModal}
-              className="min-h-[42px] px-4 py-2 rounded-xl bg-[#173125] hover:bg-[#438A53] text-white text-xs font-semibold flex items-center gap-2 whitespace-nowrap shrink-0 transition-colors"
+              className=" min-h-[42px] w-full md:w-fit px-4 py-2 rounded-xl bg-[#173125] hover:bg-[#438A53] text-white text-xs font-semibold flex justify-center items-center md:justify-start gap-2 whitespace-nowrap shrink-0 transition-colors"
             >
               <Plus className="w-4 h-4 text-[#FED24F]" />
               <span>{lang === 'bn' ? 'নতুন খরচ যোগ করুন' : 'Add New Expense'}</span>
@@ -210,11 +210,11 @@ export function ExpensesTab({
 
         {/* Filter Bar & Search */}
         <div className="flex flex-wrap items-center justify-between gap-3 mt-4 pt-4 border-t border-slate-100">
-          <div className="inline-flex rounded-xl bg-[#F6F8F5] p-1 border border-slate-200">
+          <div className="inline-flex w-full md:w-fit rounded-xl bg-[#F6F8F5] p-1 border border-slate-200">
             <button
               type="button"
               onClick={() => setFilterMode('all')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors ${
+              className={`w-full px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors ${
                 filterMode === 'all'
                   ? 'bg-[#173125] text-white'
                   : 'text-slate-600 hover:text-[#173125]'
@@ -225,7 +225,7 @@ export function ExpensesTab({
             <button
               type="button"
               onClick={() => setFilterMode('food')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors ${
+              className={`w-full px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors ${
                 filterMode === 'food'
                   ? 'bg-[#173125] text-[#FED24F]'
                   : 'text-slate-600 hover:text-[#173125]'
@@ -236,7 +236,7 @@ export function ExpensesTab({
             <button
               type="button"
               onClick={() => setFilterMode('shared')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors ${
+              className={`w-full px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors ${
                 filterMode === 'shared'
                   ? 'bg-[#173125] text-[#B2D959]'
                   : 'text-slate-600 hover:text-[#173125]'
