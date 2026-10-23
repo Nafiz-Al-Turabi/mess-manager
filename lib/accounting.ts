@@ -595,265 +595,26 @@ export function buildDueReminderMessage(
  * Rich Deterministic Seed Data for Mess "9D" (October 2026)
  */
 export function getInitialSeedData() {
-  const members: Member[] = [
-    {
-      id: 1,
-      name: 'নাফিজ আল তুরাবী (Nafiz)',
-      phone: '01711-223344',
-      roomNumber: '9D-A1',
-      email: 'nafizalturabi18cse@gmail.com',
-      joiningDate: '2026-01-01',
-      role: 'Manager',
-      notes: '',
-      isActive: true,
-    },
-    {
-      id: 2,
-      name: 'তানভীর আহমেদ (Tanvir)',
-      phone: '01819-556677',
-      roomNumber: '9D-A2',
-      email: 'tanvir.ahmed@gmail.com',
-      joiningDate: '2026-02-01',
-      role: 'Member',
-      notes: '',
-      isActive: true,
-    },
-    {
-      id: 3,
-      name: 'রাকিবুল হাসান (Rakib)',
-      phone: '01912-889900',
-      roomNumber: '9D-B1',
-      email: 'rakib.hasan@gmail.com',
-      joiningDate: '2026-03-01',
-      role: 'Member',
-      notes: '',
-      isActive: true,
-    },
-    {
-      id: 4,
-      name: 'সাদিয়া ইসলাম / মাহিন (Mahin)',
-      phone: '01615-443322',
-      roomNumber: '9D-B2',
-      email: 'mahin.cse@gmail.com',
-      joiningDate: '2026-04-01',
-      role: 'Member',
-      notes: '',
-      isActive: true,
-    },
-    {
-      id: 5,
-      name: 'আরিফুল ইসলাম (Arif)',
-      phone: '01521-334455',
-      roomNumber: '9D-C1',
-      email: 'arif.islam@gmail.com',
-      joiningDate: '2026-05-01',
-      role: 'Member',
-      notes: '',
-      isActive: true,
-    },
-  ];
-
-  const meals: MealRecord[] = [
-    // Oct 19, 2026
-    { id: 101, date: '2026-10-19', memberId: 1, breakfast: 0.5, lunch: 1, dinner: 1, guestMeal: 0, notes: '', recordedBy: 'MANAGER' },
-    { id: 102, date: '2026-10-19', memberId: 2, breakfast: 0.5, lunch: 1, dinner: 1, guestMeal: 1, notes: 'Friend visit', recordedBy: 'MANAGER' },
-    { id: 103, date: '2026-10-19', memberId: 3, breakfast: 0, lunch: 1, dinner: 1, guestMeal: 0, notes: '', recordedBy: 'MANAGER' },
-    { id: 104, date: '2026-10-19', memberId: 4, breakfast: 0.5, lunch: 1, dinner: 1, guestMeal: 0, notes: '', recordedBy: 'MANAGER' },
-    { id: 105, date: '2026-10-19', memberId: 5, breakfast: 0.5, lunch: 0, dinner: 1, guestMeal: 0, notes: '', recordedBy: 'SELF' },
-    // Oct 20, 2026
-    { id: 106, date: '2026-10-20', memberId: 1, breakfast: 0.5, lunch: 1, dinner: 1, guestMeal: 0, notes: '', recordedBy: 'MANAGER' },
-    { id: 107, date: '2026-10-20', memberId: 2, breakfast: 0.5, lunch: 1, dinner: 1, guestMeal: 0, notes: '', recordedBy: 'MANAGER' },
-    { id: 108, date: '2026-10-20', memberId: 3, breakfast: 0.5, lunch: 1, dinner: 1, guestMeal: 0, notes: '', recordedBy: 'MANAGER' },
-    { id: 109, date: '2026-10-20', memberId: 4, breakfast: 0.5, lunch: 1, dinner: 1, guestMeal: 2, notes: 'Cousin dinner', recordedBy: 'MANAGER' },
-    { id: 110, date: '2026-10-20', memberId: 5, breakfast: 0.5, lunch: 1, dinner: 1, guestMeal: 0, notes: '', recordedBy: 'MANAGER' },
-    // Oct 21, 2026
-    { id: 111, date: '2026-10-21', memberId: 1, breakfast: 0.5, lunch: 1, dinner: 1, guestMeal: 0, notes: '', recordedBy: 'MANAGER' },
-    { id: 112, date: '2026-10-21', memberId: 2, breakfast: 0.5, lunch: 1, dinner: 1, guestMeal: 0, notes: '', recordedBy: 'MANAGER' },
-    { id: 113, date: '2026-10-21', memberId: 3, breakfast: 0.5, lunch: 1, dinner: 0, guestMeal: 0, notes: 'Going home night', recordedBy: 'SELF' },
-    { id: 114, date: '2026-10-21', memberId: 4, breakfast: 0.5, lunch: 1, dinner: 1, guestMeal: 0, notes: '', recordedBy: 'MANAGER' },
-    { id: 115, date: '2026-10-21', memberId: 5, breakfast: 0.5, lunch: 1, dinner: 1, guestMeal: 0, notes: '', recordedBy: 'MANAGER' },
-  ];
-
-  const expenses: ExpenseRecord[] = [
-    {
-      id: 201,
-      date: '2026-10-05',
-      title: 'চাল ৫০ কেজি, তেল ৫ লিটার ও মসলা',
-      category: 'Bazar (Food)',
-      amount: 1450,
-      paidByMemberId: 1,
-      paidByName: 'নাফিজ আল তুরাবী (Nafiz)',
-      description: 'মাসের শুরুর বড় বাজার (কাওরান বাজার)',
-      isFoodExpense: true,
-    },
-    {
-      id: 202,
-      date: '2026-10-12',
-      title: 'মুরগি, ডিম ২ ডজন ও সবজি বাজার',
-      category: 'Bazar (Food)',
-      amount: 920,
-      paidByMemberId: 2,
-      paidByName: 'তানভীর আহমেদ (Tanvir)',
-      description: 'সাপ্তাহিক কাঁচাবাজার ও ব্রয়লার মুরগি',
-      isFoodExpense: true,
-    },
-    {
-      id: 203,
-      date: '2026-10-18',
-      title: 'রুই মাছ, গরুর মাংস ও আলু-পেঁয়াজ',
-      category: 'Bazar (Food)',
-      amount: 680,
-      paidByMemberId: 1,
-      paidByName: 'নাফিজ আল তুরাবী (Nafiz)',
-      description: 'শুক্রবারের স্পেশাল বাজার',
-      isFoodExpense: true,
-    },
-    {
-      id: 204,
-      date: '2026-10-07',
-      title: 'খালা / বুয়া বিল (অক্টোবর)',
-      category: 'Bua / Maid',
-      amount: 2500,
-      paidByMemberId: 1,
-      paidByName: 'নাফিজ আল তুরাবী (Nafiz)',
-      description: 'রান্না ও ঘর পরিষ্কারের মাসিক বেতন',
-      isFoodExpense: false,
-    },
-    {
-      id: 205,
-      date: '2026-10-10',
-      title: 'হাই-স্পিড ওয়াইফাই বিল (৫০ Mbps)',
-      category: 'WiFi',
-      amount: 1000,
-      paidByMemberId: 3,
-      paidByName: 'রাকিবুল হাসান (Rakib)',
-      description: 'ISP ব্রডব্যান্ড মাসিক বিল',
-      isFoodExpense: false,
-    },
-    {
-      id: 206,
-      date: '2026-10-15',
-      title: 'গ্যাস সিলিন্ডার ও বিদ্যুৎ বিল',
-      category: 'Gas',
-      amount: 1500,
-      paidByMemberId: 1,
-      paidByName: 'নাফিজ আল তুরাবী (Nafiz)',
-      description: 'প্রিপেইড মিটার ও এলপিজি রিফিল',
-      isFoodExpense: false,
-    },
-  ];
-
-  const deposits: DepositRecord[] = [
-    {
-      id: 301,
-      date: '2026-10-03',
-      memberId: 1,
-      amount: 2000,
-      paymentMethod: 'Cash',
-      transactionRef: 'CASH-OCT-01',
-      description: 'প্রথম কিস্তি জমা',
-    },
-    {
-      id: 302,
-      date: '2026-10-04',
-      memberId: 2,
-      amount: 1500,
-      paymentMethod: 'bKash',
-      transactionRef: 'BK98234X1',
-      description: 'বিকাশ সেন্ড মানি',
-    },
-    {
-      id: 303,
-      date: '2026-10-05',
-      memberId: 3,
-      amount: 500,
-      paymentMethod: 'Nagad',
-      transactionRef: 'NG77129A',
-      description: 'নগদ ট্রান্সফার',
-    },
-    {
-      id: 304,
-      date: '2026-10-06',
-      memberId: 4,
-      amount: 2200,
-      paymentMethod: 'Bank',
-      transactionRef: 'CITY-44910',
-      description: 'সিটিটাচ ব্যাংক ট্রান্সফার',
-    },
-    {
-      id: 305,
-      date: '2026-10-08',
-      memberId: 5,
-      amount: 1000,
-      paymentMethod: 'Cash',
-      transactionRef: 'CASH-OCT-05',
-      description: 'নগদ জমা',
-    },
-  ];
+  const members: Member[] = [];
+  const meals: MealRecord[] = [];
+  const expenses: ExpenseRecord[] = [];
+  const deposits: DepositRecord[] = [];
 
   const notice: NoticeItem = {
-    id: 'AUDIT_NOTICE_9D',
-    title: 'রাত ১০:০০ টার মধ্যে আগামীকালের মিল কনফার্ম করুন',
-    message:
-      'সবাইকে জানানো যাচ্ছে যে, রাত ১০টার পর অটোমেটিক মিল লক হয়ে যাবে। যাদের বকেয়া আছে তারা ২৫ তারিখের মধ্যে বিকাশ বা নগদে জমা দিয়ে দিন।',
-    category: 'URGENT',
-    postedBy: 'নাফিজ আল তুরাবী (Manager)',
-    postedAt: '2026-10-21 09:30 PM',
+    id: "n_1",
+    title: "মেস ম্যানেজারে স্বাগতম",
+    message: "হিসাব শুরু করার জন্য প্রথমে সদস্য তালিকায় মেম্বার যুক্ত করুন।",
+    category: "GENERAL",
+    postedBy: "Super Admin",
+    postedAt: new Date().toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    }),
   };
 
-  const rosters: RosterItem[] = [
-    {
-      id: 401,
-      date: '2026-10-22',
-      memberId: 3,
-      memberName: 'রাকিবুল হাসান (Rakib)',
-      note: 'সকালের কাঁচাবাজার ও ডিম ২ হালি',
-      status: 'UPCOMING',
-    },
-    {
-      id: 402,
-      date: '2026-10-24',
-      memberId: 4,
-      memberName: 'সাদিয়া ইসলাম / মাহিন (Mahin)',
-      note: 'শুক্রবারের মাছ ও মাংস বাজার',
-      status: 'UPCOMING',
-    },
-    {
-      id: 403,
-      date: '2026-10-18',
-      memberId: 2,
-      memberName: 'তানভীর আহমেদ (Tanvir)',
-      note: 'সাপ্তাহিক সবজি ও মুরগি বাজার সম্পন্ন',
-      status: 'COMPLETED',
-    },
-  ];
-
-  const activityLogs: ActivityLogItem[] = [
-    {
-      id: 1761085000000,
-      title: 'বাজার খরচ যুক্ত হয়েছে (৳৬৮০)',
-      description: 'রুই মাছ, গরুর মাংস ও আলু-পেঁয়াজ — নাফিজ আল তুরাবী',
-      actorName: 'নাফিজ আল তুরাবী',
-      timeText: 'Oct 21, 08:15 PM',
-      category: 'EXPENSE',
-    },
-    {
-      id: 1761081000000,
-      title: 'ডেইলি মিল আপডেট (২১ অক্টোবর)',
-      description: '৫ জন মেম্বারের সকালের নাস্তা, দুপুর ও রাতের মিল এন্ট্রি সম্পন্ন',
-      actorName: 'নাফিজ আল তুরাবী',
-      timeText: 'Oct 21, 02:30 PM',
-      category: 'MEAL',
-    },
-    {
-      id: 1761075000000,
-      title: 'মিল জমার এন্ট্রি (৳২,২০০)',
-      description: 'সাদিয়া ইসলাম / মাহিন (Bank Transfer)',
-      actorName: 'নাফিজ আল তুরাবী',
-      timeText: 'Oct 20, 09:10 PM',
-      category: 'DEPOSIT',
-    },
-  ];
+  const rosters: RosterItem[] = [];
+  const activityLogs: ActivityLogItem[] = [];
 
   return {
     members,
@@ -863,6 +624,6 @@ export function getInitialSeedData() {
     notice,
     rosters,
     activityLogs,
-    lockedDates: ['CUTOFF_22:00'],
+    lockedDates: ["CUTOFF_22:00"],
   };
 }
