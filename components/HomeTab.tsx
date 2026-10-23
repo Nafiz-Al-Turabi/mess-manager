@@ -309,10 +309,10 @@ export function HomeTab({
         <div className="lg:col-span-7 rounded-2xl bg-white border border-[#173125]/10 p-5 flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between gap-2">
-              <div className="flex items-center gap-2 text-xs text-[#438A53] font-semibold">
+              <div className="flex items-start gap-2 text-xs text-[#438A53] font-semibold">
                 <Bell className="w-4 h-4 text-[#438A53]" />
                 <span>
-                  {lang === "bn" ? "নোটিশ বোর্ড" : "Mess Notice Board"}
+                  {lang === "bn" ? "নোটিশ বোর্ড" : "Mess Notice"}
                 </span>
                 <span>·</span>
                 <span>{translateNoticeCategory(notice.category, lang)}</span>
@@ -329,7 +329,7 @@ export function HomeTab({
                   className="min-h-[36px] px-3 py-1 rounded-lg bg-[#F6F8F5] hover:bg-[#438A53]/10 text-xs font-medium text-[#173125] flex items-center gap-1.5 whitespace-nowrap shrink-0 transition-colors"
                 >
                   <Edit3 className="w-3.5 h-3.5" />
-                  <span>{lang === "bn" ? "নোটিশ আপডেট" : "Edit Notice"}</span>
+                  <span>{lang === "bn" ? "আপডেট" : "Edit"}</span>
                 </button>
               )}
             </div>
