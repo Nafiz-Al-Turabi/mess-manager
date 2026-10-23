@@ -1,7 +1,8 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
+  ChevronDown,
   ChevronLeft,
   ChevronRight,
   Database,
@@ -13,6 +14,7 @@ import {
   ShieldAlert,
   ShieldCheck,
   Unlock,
+  User,
   Users,
   UtensilsCrossed,
 } from 'lucide-react';
@@ -75,6 +77,19 @@ export function HeaderBar({
 
   const isSuperAdmin = currentUser?.role === 'SUPER_ADMIN';
   const isAdmin = currentUser?.role === 'ADMIN' || isSuperAdmin;
+  const [showUserDropdown, setShowUserDropdown] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setShowUserDropdown(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   return (
     <header className="sticky top-0 z-30 bg-[#173125] text-white border-b border-[#438A53]/30 no-print">
@@ -128,29 +143,17 @@ export function HeaderBar({
           })}
         </nav>
 
-        {/* Zone 3: Controls (User Management, Auth, Language) */}
+        {/* Zone 3: Controls & Responsive User Dropdown */}
         <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-          {/* User Management Button for Super Admin or Admin */}
-          {isAdmin && (
-            <button
-              type="button"
-              onClick={onOpenUserManagement}
-              className="min-h-[38px] sm:min-h-[40px] px-2.5 sm:px-3 py-1.5 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 text-xs font-semibold flex items-center gap-1.5 whitespace-nowrap shrink-0 transition border border-amber-500/30 shadow-sm"
-              title={lang === 'bn' ? 'ইউজার ও রোল পরিচালনা' : 'Manage Users & Permissions'}
-            >
-              <Users className="w-3.5 h-3.5 text-amber-300" />
-              <span>{lang === 'bn' ? 'ইউজার লিস্ট' : 'Users'}</span>
-            </button>
-          )}
-
+          {/* Mess switcher / code */}
           <button
             type="button"
             onClick={onOpenMessSwitcher}
-            className="min-h-[38px] sm:min-h-[40px] px-2.5 sm:px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/15 text-xs font-medium text-white flex items-center gap-1 sm:gap-1.5 whitespace-nowrap shrink-0 transition-colors"
+            className="min-h-[38px] sm:min-h-[40px] px-2.5 sm:px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/15 text-xs font-medium text-white flex items-center gap-1 sm:gap-1.5 whitespace-nowrap shrink-0 transition-colors"
             title={lang === 'bn' ? 'মেস কোড সেটিংস' : 'Mess Code Settings'}
           >
             <KeyRound className="w-3.5 h-3.5 text-[#FED24F]" />
-            <span className="hidden xs:inline sm:inline">
+            <span className="hidden md:inline">
               {currentUser?.role === 'SUPER_ADMIN'
                 ? 'Super Admin'
                 : isManager
@@ -160,37 +163,125 @@ export function HeaderBar({
             <span className="text-[#B2D959] font-numeric font-bold">{messId}</span>
           </button>
 
+          {/* Language Toggle */}
+          <button
+            type="button"
+            onClick={onToggleLang}
+            aria-label={lang === 'bn' ? 'Switch to English' : 'বাংলায় পরিবর্তন করুন'}
+            className="min-h-[38px] sm:min-h-[40px] px-2.5 py-1.5 rounded-xl border border-white/20 hover:bg-white/10 text-xs font-semibold text-white flex items-center gap-1 whitespace-nowrap shrink-0 transition-colors"
+          >
+            <Globe className="w-3.5 h-3.5 text-[#B2D959]" />
+            <span>{lang === 'bn' ? 'EN' : 'বাং'}</span>
+          </button>
+
+          {/* User Profile & Actions Dropdown */}
           {currentUser ? (
-            <button
-              type="button"
-              onClick={onSignOut}
-              className="min-h-[38px] sm:min-h-[40px] px-2.5 sm:px-3 py-1.5 rounded-lg bg-[#438A53]/40 hover:bg-rose-500/20 hover:text-rose-300 text-xs font-medium text-[#B2D959] flex items-center gap-1.5 whitespace-nowrap shrink-0 transition-colors"
-              title={`Logged in as ${currentUser.username} (${currentUser.role}) - Click to Sign Out`}
-            >
-              <Database className="w-3.5 h-3.5 text-[#7EC151]" />
-              <span className="hidden sm:inline">@{currentUser.username}</span>
-              <LogOut className="w-3.5 h-3.5 opacity-80" />
-            </button>
+            <div className="relative" ref={dropdownRef}>
+              <button
+                type="button"
+                onClick={() => setShowUserDropdown(!showUserDropdown)}
+                className="min-h-[38px] sm:min-h-[40px] pl-2 sm:pl-3 pr-2 py-1.5 rounded-xl bg-[#438A53]/50 hover:bg-[#438A53]/70 border border-[#FED24F]/30 text-xs font-medium text-white flex items-center gap-1.5 sm:gap-2 whitespace-nowrap shrink-0 transition shadow-sm"
+              >
+                <div className="w-6 h-6 rounded-lg bg-[#173125] text-[#FED24F] flex items-center justify-center font-bold text-xs uppercase shrink-0">
+                  {currentUser.name ? currentUser.name[0] : 'U'}
+                </div>
+                <div className="text-left hidden sm:block max-w-[110px] truncate">
+                  <div className="font-semibold text-white truncate text-[11px] leading-tight">
+                    {currentUser.name || currentUser.username}
+                  </div>
+                  <div className="text-[10px] text-[#B2D959] truncate leading-tight">
+                    {currentUser.role}
+                  </div>
+                </div>
+                <ChevronDown className={`w-3.5 h-3.5 text-white/70 transition-transform duration-200 ${showUserDropdown ? 'rotate-180' : ''}`} />
+              </button>
+
+              {/* Responsive Dropdown Menu */}
+              {showUserDropdown && (
+                <div className="absolute right-0 mt-2 w-64 bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl z-50 py-2 text-slate-100 divide-y divide-slate-800 animate-in fade-in zoom-in-95 duration-150">
+                  {/* User Profile Header */}
+                  <div className="px-4 py-3">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-9 h-9 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 flex items-center justify-center font-bold text-sm shrink-0">
+                        {currentUser.name ? currentUser.name[0].toUpperCase() : 'U'}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold text-white truncate">{currentUser.name}</p>
+                        <p className="text-[11px] text-slate-400 truncate">@{currentUser.username}</p>
+                      </div>
+                    </div>
+                    <div className="mt-2.5 flex items-center gap-1.5">
+                      <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-500/15 text-amber-300 border border-amber-500/30">
+                        {currentUser.role}
+                      </span>
+                      <span className="px-2 py-0.5 rounded-md text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                        Mess: {messId}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Action Items */}
+                  <div className="py-1">
+                    {isAdmin && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowUserDropdown(false);
+                          onOpenUserManagement();
+                        }}
+                        className="w-full text-left px-4 py-2 text-xs text-slate-200 hover:bg-slate-800 flex items-center gap-2.5 transition"
+                      >
+                        <Users className="w-4 h-4 text-amber-400" />
+                        <div>
+                          <div className="font-medium text-white">{lang === 'bn' ? 'ইউজার ও রোল ম্যানেজমেন্ট' : 'User & Role Management'}</div>
+                          <div className="text-[10px] text-slate-400">{lang === 'bn' ? 'ইউজার তৈরি, পাসওয়ার্ড ও পারমিশন' : 'Add users, reset passwords'}</div>
+                        </div>
+                      </button>
+                    )}
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowUserDropdown(false);
+                        onOpenMessSwitcher();
+                      }}
+                      className="w-full text-left px-4 py-2 text-xs text-slate-200 hover:bg-slate-800 flex items-center gap-2.5 transition"
+                    >
+                      <KeyRound className="w-4 h-4 text-emerald-400" />
+                      <div>
+                        <div className="font-medium text-white">{lang === 'bn' ? 'মেস কোড ও সেটিংস' : 'Mess Code Settings'}</div>
+                        <div className="text-[10px] text-slate-400">{lang === 'bn' ? 'মেস পরিবর্তন অথবা পিন পরিবর্তন' : 'Change Mess or PIN'}</div>
+                      </div>
+                    </button>
+                  </div>
+
+                  {/* Sign Out Action */}
+                  <div className="pt-1">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowUserDropdown(false);
+                        onSignOut();
+                      }}
+                      className="w-full text-left px-4 py-2.5 text-xs text-rose-400 hover:bg-rose-500/10 flex items-center gap-2.5 transition font-medium"
+                    >
+                      <LogOut className="w-4 h-4 text-rose-400" />
+                      <span>{lang === 'bn' ? 'লগআউট করুন' : 'Sign Out'}</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
           ) : (
             <button
               type="button"
               onClick={onOpenLogin}
-              className="min-h-[38px] sm:min-h-[40px] px-3 sm:px-3.5 py-1.5 rounded-lg bg-[#FED24F] hover:bg-[#FED24F]/90 text-[#173125] text-xs font-bold flex items-center gap-1.5 whitespace-nowrap shrink-0 transition shadow-sm"
+              className="min-h-[38px] sm:min-h-[40px] px-3.5 py-1.5 rounded-xl bg-[#FED24F] hover:bg-[#FED24F]/90 text-[#173125] text-xs font-bold flex items-center gap-1.5 whitespace-nowrap shrink-0 transition shadow-sm cursor-pointer"
             >
               <LogIn className="w-3.5 h-3.5" />
               <span>{lang === 'bn' ? 'লগইন' : 'Login'}</span>
             </button>
           )}
-
-          <button
-            type="button"
-            onClick={onToggleLang}
-            aria-label={lang === 'bn' ? 'Switch to English' : 'বাংলায় পরিবর্তন করুন'}
-            className="min-h-[38px] sm:min-h-[40px] px-2.5 sm:px-3 py-1.5 rounded-lg border border-white/20 hover:bg-white/10 text-xs font-semibold text-white flex items-center gap-1 whitespace-nowrap shrink-0 transition-colors"
-          >
-            <Globe className="w-3.5 h-3.5 text-[#B2D959]" />
-            <span>{lang === 'bn' ? 'EN' : 'বাংলা'}</span>
-          </button>
         </div>
       </div>
 
