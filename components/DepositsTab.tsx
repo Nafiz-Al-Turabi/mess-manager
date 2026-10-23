@@ -133,7 +133,7 @@ export function DepositsTab({
               <span>
                 {lang === 'bn'
                   ? 'মেম্বার জমা ও পেমেন্ট এন্ট্রি (Deposits)'
-                  : 'Member Cash & Mobile Banking Deposits'}
+                  : 'Member Cash &  Deposits'}
               </span>
             </h1>
             <p className="text-xs text-slate-500 mt-0.5">
@@ -143,9 +143,9 @@ export function DepositsTab({
             </p>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex justify-between w-full items-center gap-3">
             <div className="text-right">
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-slate-500 font-bold">
                 {lang === 'bn' ? 'নির্বাচিত মোট জমা' : 'Selected Total Deposits'}
               </p>
               <p className="text-lg font-bold font-numeric text-[#438A53]">
@@ -167,7 +167,7 @@ export function DepositsTab({
         </div>
 
         {/* Interactive Member Filter Buttons */}
-        <div className="mt-4 pt-4 border-t border-slate-100 flex flex-wrap items-center gap-2">
+        <div className="mt-4 pt-4 border-t border-slate-100 flex overflow-x-auto items-center gap-2">
           <button
             type="button"
             onClick={() => setSelectedMemberFilter('ALL')}
