@@ -51,6 +51,16 @@ export async function POST(req: NextRequest) {
     }
 
     const passwordHash = await hashPassword(password);
+    
+    // Find next available memberId if not provided
+    let assignedMemberId = memberId ? Number(memberId) : undefined;
+    if (!assignedMemberId) {
+      const highestUser = await UserModel.findOne({ messId: auth.messId || '9D' })
+        .sort({ memberId: -1 })
+        .lean();
+      assignedMemberId = (highestUser?.memberId || 0) + 1;
+    }
+
     const newUser = await UserModel.create({
       username: cleanUsername,
       passwordHash,
@@ -60,8 +70,37 @@ export async function POST(req: NextRequest) {
       role: assignedRole,
       isActive: true,
       messId: auth.messId || '9D',
-      memberId: memberId ? Number(memberId) : undefined,
+      memberId: assignedMemberId,
     });
+
+    // Also auto-create a MessRecord of type MEMBER so they appear instantly in meal sheets
+    const { MessRecordModel } = await import('@/lib/models');
+    const recordId = `MEMBER_${assignedMemberId}`;
+    await MessRecordModel.findOneAndUpdate(
+      { recordId },
+      {
+        $set: {
+          recordId,
+          messId: auth.messId || '9D',
+          recordType: 'MEMBER',
+          monthKey: 'ALL',
+          title: newUser.name,
+          subtitle: `${newUser.phone || ''}|${newUser.roomNumber || ''}|${newUser.email || ''}|2026-10-01`,
+          role: assignedRole === 'SUPER_ADMIN' || assignedRole === 'ADMIN' ? 'Manager' : 'Member',
+          linkedUid: newUser.username,
+          entityLocalId: assignedMemberId,
+          targetMemberId: assignedMemberId,
+          amount: 0,
+          breakfast: 0,
+          lunch: 0,
+          dinner: 0,
+          guestMeal: 0,
+          active: true,
+          createdBy: auth.username,
+        },
+      },
+      { upsert: true }
+    );
 
     return NextResponse.json({
       success: true,

@@ -10,14 +10,68 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const messId = (searchParams.get('messId') || '9D').toUpperCase();
 
-    const [records, settings] = await Promise.all([
+    const [records, settings, users] = await Promise.all([
       MessRecordModel.find({ messId }).sort({ createdAt: 1 }).lean(),
       MessSettingModel.findOne({ messId }).lean(),
+      (await import('@/lib/models')).UserModel.find({ messId, isActive: true }).sort({ createdAt: 1 }).lean(),
     ]);
+
+    // Check existing MEMBER records
+    const memberRecordIds = new Set(
+      (records || [])
+        .filter((r: any) => r.recordType === 'MEMBER')
+        .map((r: any) => String(r.entityLocalId || r.targetMemberId))
+    );
+
+    const memberUsernames = new Set(
+      (records || [])
+        .filter((r: any) => r.recordType === 'MEMBER')
+        .map((r: any) => r.linkedUid?.toLowerCase())
+    );
+
+    // Auto-generate virtual MEMBER records for registered users who don't have one yet
+    const autoMemberRecords: any[] = [];
+    let nextLocalId = 1;
+
+    // Find highest local id currently in records
+    (records || []).forEach((r: any) => {
+      if (r.entityLocalId && r.entityLocalId >= nextLocalId) {
+        nextLocalId = r.entityLocalId + 1;
+      }
+    });
+
+    for (const u of users) {
+      const uName = u.username.toLowerCase();
+      if (!memberUsernames.has(uName) && (!u.memberId || !memberRecordIds.has(String(u.memberId)))) {
+        const assignedId = u.memberId || nextLocalId++;
+        const recordId = `MEMBER_${assignedId}`;
+        autoMemberRecords.push({
+          recordId,
+          messId,
+          recordType: 'MEMBER',
+          monthKey: 'ALL',
+          title: u.name,
+          subtitle: `${u.phone || ''}|${u.roomNumber || ''}|${u.email || ''}|2026-10-01`,
+          role: u.role === 'SUPER_ADMIN' || u.role === 'ADMIN' ? 'Manager' : 'Member',
+          linkedUid: u.username,
+          entityLocalId: assignedId,
+          targetMemberId: assignedId,
+          amount: 0,
+          breakfast: 0,
+          lunch: 0,
+          dinner: 0,
+          guestMeal: 0,
+          active: u.isActive,
+          createdBy: 'system',
+        });
+      }
+    }
+
+    const allRecords = [...(records || []), ...autoMemberRecords];
 
     return NextResponse.json({
       success: true,
-      records: records || [],
+      records: allRecords,
       settings: settings || { messId, messName: 'My Mess', managerPin: '16247', lockedDates: [] },
     });
   } catch (error: any) {
