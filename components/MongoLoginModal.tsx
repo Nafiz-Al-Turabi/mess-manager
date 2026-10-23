@@ -124,7 +124,7 @@ export function MongoLoginModal({
             </button>
           </div>
 
-          <div className="mt-4 p-3 bg-slate-950/60 border border-slate-800/80 rounded-xl text-[11px] text-slate-400 space-y-1">
+          {/* <div className="mt-4 p-3 bg-slate-950/60 border border-slate-800/80 rounded-xl text-[11px] text-slate-400 space-y-1">
             <p className="font-semibold text-slate-300">
               🔑 {lang === 'bn' ? 'সুপার এডমিন অ্যাক্সেস:' : 'Super Admin Access:'}
             </p>
@@ -135,7 +135,7 @@ export function MongoLoginModal({
                 ? '* লগইন করার পর ইউজার ম্যানেজমেন্ট প্যানেল থেকে যেকোনো সময় পাসওয়ার্ড পরিবর্তন করতে পারবেন।'
                 : '* You can change this password anytime after logging in.'}
             </p>
-          </div>
+          </div> */}
         </form>
       </div>
     </div>
