@@ -4,6 +4,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import {
   FileSpreadsheet,
   Home,
+  LogIn,
   ShoppingBag,
   Utensils,
   UtensilsCrossed,
@@ -1008,106 +1009,88 @@ export default function MessManagerApp() {
   return (
     <div className="min-h-screen flex flex-col bg-[#F6F8F5] text-[#173125] pb-20 lg:pb-10">
       {/* Top App Bar */}
-      <HeaderBar
-        lang={lang}
-        onToggleLang={() => {
-          const nextLang = lang === 'bn' ? 'en' : 'bn';
-          setLang(nextLang);
-          triggerToast(
-            nextLang === 'bn'
-              ? 'ভাষা পরিবর্তন: বাংলা চালু হয়েছে'
-              : 'Language switched to English',
-            undefined,
-            'info'
-          );
-        }}
-        messId={messId}
-        messName={messName}
-        isManager={isManager}
-        isMonthLocked={monthLocked}
-        monthKey={monthKey}
-        onPrevMonth={() => {
-          const prev = shiftMonthKey(monthKey, -1);
-          setMonthKey(prev);
-          setSelectedMealDate(`${prev}-15`);
-          triggerToast(
-            lang === 'bn'
-              ? `মাস পরিবর্তন: ${prev}`
-              : `Switched to month: ${prev}`,
-            undefined,
-            'info'
-          );
-        }}
-        onNextMonth={() => {
-          const next = shiftMonthKey(monthKey, 1);
-          setMonthKey(next);
-          setSelectedMealDate(`${next}-15`);
-          triggerToast(
-            lang === 'bn'
-              ? `মাস পরিবর্তন: ${next}`
-              : `Switched to month: ${next}`,
-            undefined,
-            'info'
-          );
-        }}
-        onToggleMonthLock={handleToggleMonthLock}
-        onOpenMessSwitcher={() => setShowMessSwitcher(true)}
-        isOnlineSynced={Boolean(currentUser)}
-        currentUser={currentUser}
-        onOpenLogin={() => setShowLoginModal(true)}
-        onOpenUserManagement={() => setShowUserManagementModal(true)}
-        onSignOut={handleSignOut}
-        activeTab={activeTab}
-        onSelectTab={setActiveTab}
-      />
-
-      {/* Optional Non-Intrusive Auth Feedback Banner */}
-      {authNotice && (
-        <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 pt-3 no-print">
-          <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-900 flex flex-wrap items-center justify-between gap-2">
-            <span>{authNotice}</span>
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => setShowLoginModal(true)}
-                className="px-2.5 py-1 rounded-lg bg-[#173125] text-[#FED24F] font-semibold"
-              >
-                {lang === 'bn' ? 'লগইন করুন' : 'Login'}
-              </button>
-              <button
-                type="button"
-                onClick={() => setAuthNotice(null)}
-                className="font-bold underline"
-              >
-                OK
-              </button>
-            </div>
-          </div>
-        </div>
+      {/* Header Bar - Shown ONLY when user is logged in */}
+      {currentUser && (
+        <HeaderBar
+          lang={lang}
+          onToggleLang={() => {
+            const nextLang = lang === 'bn' ? 'en' : 'bn';
+            setLang(nextLang);
+            triggerToast(
+              nextLang === 'bn'
+                ? 'ভাষা পরিবর্তন: বাংলা চালু হয়েছে'
+                : 'Language switched to English',
+              undefined,
+              'info'
+            );
+          }}
+          messId={messId}
+          messName={messName}
+          isManager={isManager}
+          isMonthLocked={monthLocked}
+          monthKey={monthKey}
+          onPrevMonth={() => {
+            const prev = shiftMonthKey(monthKey, -1);
+            setMonthKey(prev);
+            setSelectedMealDate(`${prev}-15`);
+            triggerToast(
+              lang === 'bn'
+                ? `মাস পরিবর্তন: ${prev}`
+                : `Switched to month: ${prev}`,
+              undefined,
+              'info'
+            );
+          }}
+          onNextMonth={() => {
+            const next = shiftMonthKey(monthKey, 1);
+            setMonthKey(next);
+            setSelectedMealDate(`${next}-15`);
+            triggerToast(
+              lang === 'bn'
+                ? `মাস পরিবর্তন: ${next}`
+                : `Switched to month: ${next}`,
+              undefined,
+              'info'
+            );
+          }}
+          onToggleMonthLock={handleToggleMonthLock}
+          onOpenMessSwitcher={() => setShowMessSwitcher(true)}
+          isOnlineSynced={Boolean(currentUser)}
+          currentUser={currentUser}
+          onOpenLogin={() => setShowLoginModal(true)}
+          onOpenUserManagement={() => setShowUserManagementModal(true)}
+          onSignOut={handleSignOut}
+          activeTab={activeTab}
+          onSelectTab={setActiveTab}
+        />
       )}
 
       {/* Main Content Container */}
       <main className="max-w-7xl mx-auto w-full px-3 sm:px-6 pt-4 sm:pt-6 pb-24 lg:pb-12 flex-1">
         {!currentUser && authChecked ? (
-          <div className="flex flex-col items-center justify-center py-20 px-4 text-center">
-            <div className="w-16 h-16 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 mb-4 shadow-lg">
+          <div className="flex flex-col items-center justify-center min-h-[85vh] py-12 px-4 text-center">
+            {/* Top brand header for login screen */}
+            <div className="w-16 h-16 rounded-3xl bg-[#173125] border border-[#438A53]/30 flex items-center justify-center text-[#FED24F] mb-6 shadow-xl shadow-emerald-950/20">
               <UtensilsCrossed className="w-8 h-8" />
             </div>
-            <h2 className="text-xl sm:text-2xl font-bold text-slate-800 dark:text-white tracking-tight mb-2">
-              {lang === 'bn' ? 'মেস ম্যানেজারে স্বাগতম' : 'Welcome to Mess Manager'}
-            </h2>
-            <p className="text-sm text-slate-600 dark:text-slate-400 max-w-md mb-6">
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-[#173125] tracking-tight mb-2">
+              {lang === 'bn' ? 'মেস হিসাব - Mess Manager' : 'Mess Manager'}
+            </h1>
+            <p className="text-sm text-slate-600 max-w-md mb-8 leading-relaxed">
               {lang === 'bn'
-                ? 'মেসের যাবতীয় মিল, বাজার খরচ এবং জমা দেখতে বা হিসাব নিয়ন্ত্রণ করতে অনুগ্রহ করে আপনার অ্যাকাউন্টে লগইন করুন।'
-                : 'Please sign in to your account to view meals, daily expenses, member balances, and mess reports.'}
+                ? 'মেসের সমস্ত হিসাব ও তথ্য নিরাপদ রাখতে লগইন বাধ্যতামূলক। আপনার ইউজার ক্রেডেনশিয়াল দিয়ে প্রবেশ করুন।'
+                : 'Sign in with your user credentials to access mess accounts, meals, and statements securely.'}
             </p>
             <button
               onClick={() => setShowLoginModal(true)}
-              className="inline-flex items-center gap-2 px-6 py-3 bg-[#438A53] hover:bg-[#346d41] text-white font-semibold text-sm rounded-xl shadow-lg transition transform hover:-translate-y-0.5 cursor-pointer"
+              className="inline-flex items-center gap-2.5 px-7 py-3.5 bg-[#173125] hover:bg-[#204232] active:scale-95 text-[#FED24F] font-bold text-sm rounded-2xl shadow-xl shadow-emerald-950/30 transition-all cursor-pointer"
             >
-              <Utensils className="w-4 h-4" />
-              <span>{lang === 'bn' ? 'লগইন করে প্রবেশ করুন' : 'Sign In with Credentials'}</span>
+              <LogIn className="w-4 h-4" />
+              <span>{lang === 'bn' ? 'লগইন করুন' : 'Sign In with Credentials'}</span>
             </button>
+            <p className="text-[11px] text-slate-400 mt-6">
+              Protected by JWT & MongoDB Atlas Encryption
+            </p>
           </div>
         ) : !authChecked ? (
           <div className="flex flex-col items-center justify-center py-24 text-slate-400">
@@ -1234,106 +1217,108 @@ export default function MessManagerApp() {
         )}
       </main>
 
-      {/* Mobile Fixed Bottom Navigation Bar (5 Tabs) */}
-      <nav
-        aria-label="Mobile Bottom Navigation"
-        className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#173125]/95 backdrop-blur-lg border-t border-[#438A53]/30 grid grid-cols-5 items-center h-16 px-1 shadow-[0_-4px_20px_rgba(0,0,0,0.15)] pb-safe no-print"
-      >
-        <button
-          type="button"
-          onClick={() => setActiveTab('home')}
-          className={`flex flex-col items-center justify-center min-h-[48px] py-1 transition-all ${
-            activeTab === 'home'
-              ? 'text-[#FED24F] font-bold scale-105'
-              : 'text-white/60 hover:text-white'
-          }`}
+      {/* Mobile Fixed Bottom Navigation Bar (5 Tabs) - Shown ONLY when user is logged in */}
+      {currentUser && (
+        <nav
+          aria-label="Mobile Bottom Navigation"
+          className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#173125]/95 backdrop-blur-lg border-t border-[#438A53]/30 grid grid-cols-5 items-center h-16 px-1 shadow-[0_-4px_20px_rgba(0,0,0,0.15)] pb-safe no-print"
         >
-          <Home
-            className={`w-5 h-5 transition-transform ${
-              activeTab === 'home' ? 'text-[#FED24F]' : 'text-white/60'
+          <button
+            type="button"
+            onClick={() => setActiveTab('home')}
+            className={`flex flex-col items-center justify-center min-h-[48px] py-1 transition-all ${
+              activeTab === 'home'
+                ? 'text-[#FED24F] font-bold scale-105'
+                : 'text-white/60 hover:text-white'
             }`}
-          />
-          <span className="text-[10px] mt-1 font-medium whitespace-nowrap">
-            {lang === 'bn' ? 'হোম' : 'Home'}
-          </span>
-        </button>
+          >
+            <Home
+              className={`w-5 h-5 transition-transform ${
+                activeTab === 'home' ? 'text-[#FED24F]' : 'text-white/60'
+              }`}
+            />
+            <span className="text-[10px] mt-1 font-medium whitespace-nowrap">
+              {lang === 'bn' ? 'হোম' : 'Home'}
+            </span>
+          </button>
 
-        <button
-          type="button"
-          onClick={() => setActiveTab('meals')}
-          className={`flex flex-col items-center justify-center min-h-[48px] py-1 transition-all ${
-            activeTab === 'meals'
-              ? 'text-[#FED24F] font-bold scale-105'
-              : 'text-white/60 hover:text-white'
-          }`}
-        >
-          <Utensils
-            className={`w-5 h-5 transition-transform ${
-              activeTab === 'meals' ? 'text-[#FED24F]' : 'text-white/60'
+          <button
+            type="button"
+            onClick={() => setActiveTab('meals')}
+            className={`flex flex-col items-center justify-center min-h-[48px] py-1 transition-all ${
+              activeTab === 'meals'
+                ? 'text-[#FED24F] font-bold scale-105'
+                : 'text-white/60 hover:text-white'
             }`}
-          />
-          <span className="text-[10px] mt-1 font-medium whitespace-nowrap">
-            {lang === 'bn' ? 'মিল' : 'Meals'}
-          </span>
-        </button>
+          >
+            <Utensils
+              className={`w-5 h-5 transition-transform ${
+                activeTab === 'meals' ? 'text-[#FED24F]' : 'text-white/60'
+              }`}
+            />
+            <span className="text-[10px] mt-1 font-medium whitespace-nowrap">
+              {lang === 'bn' ? 'মিল' : 'Meals'}
+            </span>
+          </button>
 
-        <button
-          type="button"
-          onClick={() => setActiveTab('expenses')}
-          className={`flex flex-col items-center justify-center min-h-[48px] py-1 transition-all ${
-            activeTab === 'expenses'
-              ? 'text-[#FED24F] font-bold scale-105'
-              : 'text-white/60 hover:text-white'
-          }`}
-        >
-          <ShoppingBag
-            className={`w-5 h-5 transition-transform ${
-              activeTab === 'expenses' ? 'text-[#FED24F]' : 'text-white/60'
+          <button
+            type="button"
+            onClick={() => setActiveTab('expenses')}
+            className={`flex flex-col items-center justify-center min-h-[48px] py-1 transition-all ${
+              activeTab === 'expenses'
+                ? 'text-[#FED24F] font-bold scale-105'
+                : 'text-white/60 hover:text-white'
             }`}
-          />
-          <span className="text-[10px] mt-1 font-medium whitespace-nowrap">
-            {lang === 'bn' ? 'খরচ' : 'Expenses'}
-          </span>
-        </button>
+          >
+            <ShoppingBag
+              className={`w-5 h-5 transition-transform ${
+                activeTab === 'expenses' ? 'text-[#FED24F]' : 'text-white/60'
+              }`}
+            />
+            <span className="text-[10px] mt-1 font-medium whitespace-nowrap">
+              {lang === 'bn' ? 'খরচ' : 'Expenses'}
+            </span>
+          </button>
 
-        <button
-          type="button"
-          onClick={() => setActiveTab('deposits')}
-          className={`flex flex-col items-center justify-center min-h-[48px] py-1 transition-all ${
-            activeTab === 'deposits'
-              ? 'text-[#FED24F] font-bold scale-105'
-              : 'text-white/60 hover:text-white'
-          }`}
-        >
-          <Wallet
-            className={`w-5 h-5 transition-transform ${
-              activeTab === 'deposits' ? 'text-[#FED24F]' : 'text-white/60'
+          <button
+            type="button"
+            onClick={() => setActiveTab('deposits')}
+            className={`flex flex-col items-center justify-center min-h-[48px] py-1 transition-all ${
+              activeTab === 'deposits'
+                ? 'text-[#FED24F] font-bold scale-105'
+                : 'text-white/60 hover:text-white'
             }`}
-          />
-          <span className="text-[10px] mt-1 font-medium whitespace-nowrap">
-            {lang === 'bn' ? 'জমা' : 'Deposits'}
-          </span>
-        </button>
+          >
+            <Wallet
+              className={`w-5 h-5 transition-transform ${
+                activeTab === 'deposits' ? 'text-[#FED24F]' : 'text-white/60'
+              }`}
+            />
+            <span className="text-[10px] mt-1 font-medium whitespace-nowrap">
+              {lang === 'bn' ? 'জমা' : 'Deposits'}
+            </span>
+          </button>
 
-        <button
-          type="button"
-          onClick={() => setActiveTab('reports')}
-          className={`flex flex-col items-center justify-center min-h-[48px] py-1 transition-all ${
-            activeTab === 'reports'
-              ? 'text-[#FED24F] font-bold scale-105'
-              : 'text-white/60 hover:text-white'
-          }`}
-        >
-          <FileSpreadsheet
-            className={`w-5 h-5 transition-transform ${
-              activeTab === 'reports' ? 'text-[#FED24F]' : 'text-white/60'
+          <button
+            type="button"
+            onClick={() => setActiveTab('reports')}
+            className={`flex flex-col items-center justify-center min-h-[48px] py-1 transition-all ${
+              activeTab === 'reports'
+                ? 'text-[#FED24F] font-bold scale-105'
+                : 'text-white/60 hover:text-white'
             }`}
-          />
-          <span className="text-[10px] mt-1 font-medium whitespace-nowrap">
-            {lang === 'bn' ? 'রিপোর্ট' : 'Reports'}
-          </span>
-        </button>
-      </nav>
+          >
+            <FileSpreadsheet
+              className={`w-5 h-5 transition-transform ${
+                activeTab === 'reports' ? 'text-[#FED24F]' : 'text-white/60'
+              }`}
+            />
+            <span className="text-[10px] mt-1 font-medium whitespace-nowrap">
+              {lang === 'bn' ? 'রিপোর্ট' : 'Reports'}
+            </span>
+          </button>
+        </nav>
+      )}
 
       {/* Mess Switcher & Manager PIN Modal */}
       <MessSwitcherModal
