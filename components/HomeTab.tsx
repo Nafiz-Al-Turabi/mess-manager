@@ -197,7 +197,7 @@ export function HomeTab({
             </p>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex justify-center md:justify-start w-full md:w-fit items-center gap-2">
             <button
               type="button"
               onClick={onDownloadMonthlyPdf}
