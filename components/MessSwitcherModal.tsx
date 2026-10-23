@@ -130,8 +130,8 @@ export function MessSwitcherModal({
                       ? 'ম্যানেজার (Full Control)'
                       : 'Manager (Full Control)'
                     : lang === 'bn'
-                      ? 'মেম্বার (View & Self Meal)'
-                      : 'Member (View & Self Meal)'}
+                      ? 'মেম্বার (View Only)'
+                      : 'Member (View Only)'}
                 </span>
               </p>
               <p className="text-[11px] text-slate-500">

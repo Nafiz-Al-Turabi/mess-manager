@@ -3,10 +3,8 @@
 import React, { useState } from 'react';
 import {
   Bell,
-  CalendarClock,
   CheckCircle2,
   ClipboardList,
-  Clock,
   Copy,
   Edit3,
   FileSpreadsheet,
@@ -33,6 +31,7 @@ import {
   NoticeItem,
   RosterItem,
 } from '@/lib/types';
+import { AppUser } from '@/lib/mongo-client';
 import {
   formatCurrency,
   formatMonthLabel,
@@ -47,6 +46,7 @@ interface HomeTabProps {
   messName: string;
   monthKey: string;
   isManager: boolean;
+  currentUser?: AppUser | null;
   accounting: MonthlyMessAccounting;
   notice: NoticeItem;
   onSaveNotice: (updated: NoticeItem) => void;
@@ -86,6 +86,7 @@ export function HomeTab({
   messName,
   monthKey,
   isManager,
+  currentUser,
   accounting,
   notice,
   onSaveNotice,
@@ -116,14 +117,6 @@ export function HomeTab({
   const [noticeMessage, setNoticeMessage] = useState(notice.message);
   const [noticeCategory, setNoticeCategory] = useState<NoticeCategory>(notice.category);
 
-  // Self Meal Control Local State
-  const currentB = tomorrowMeal ? tomorrowMeal.breakfast : 0.5;
-  const currentL = tomorrowMeal ? tomorrowMeal.lunch : 1;
-  const currentD = tomorrowMeal ? tomorrowMeal.dinner : 1;
-  const currentG = tomorrowMeal ? tomorrowMeal.guestMeal : 0;
-  const [selfNote, setSelfNote] = useState(tomorrowMeal?.notes || '');
-  const [selfSavedToast, setSelfSavedToast] = useState(false);
-
   // Roster Form State
   const [showRosterModal, setShowRosterModal] = useState(false);
   const [rosterDate, setRosterDate] = useState(tomorrowDate);
@@ -141,6 +134,16 @@ export function HomeTab({
   const dueMembers = accounting.memberSummaries.filter((m) => m.netBalance < -1);
   const pendingRequests = joinRequests.filter((r) => r.status === 'PENDING');
   const monthLabel = formatMonthLabel(monthKey, lang);
+
+  // Current logged in user's individual accounting summary
+  const mySummary = currentUser
+    ? accounting.memberSummaries.find(
+        (m) =>
+          (currentUser.memberId && m.member.id === currentUser.memberId) ||
+          m.member.notes?.toLowerCase() === currentUser.username.toLowerCase() ||
+          m.member.name.toLowerCase() === currentUser.name.toLowerCase()
+      ) || accounting.memberSummaries[0]
+    : accounting.memberSummaries[0];
 
   const handleCopyReminder = (summary: MemberAccountingSummary) => {
     const text = buildDueReminderMessage(messName, monthLabel, summary, lang);
@@ -405,198 +408,144 @@ export function HomeTab({
         </div>
       </div>
 
-      {/* 3. SELF MEAL ON/OFF CONTROL & BAZAR ROSTER */}
+      {/* 3. USER INDIVIDUAL ACCOUNTING CARD & BAZAR ROSTER */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
-        {/* Member Self Meal On/Off Control */}
-        <div className="lg:col-span-6 rounded-2xl bg-white border border-[#173125]/10 p-5">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <div>
-              <h2 className="text-base font-bold text-[#173125] flex items-center gap-2">
-                <CalendarClock className="w-4 h-4 text-[#438A53]" />
-                <span>
-                  {lang === 'bn'
-                    ? 'নিজের মিল অন/অফ কন্ট্রোল (Self Meal On/Off)'
-                    : 'Member Self Meal On/Off Control'}
-                </span>
-              </h2>
-              <p className="text-xs text-slate-500 mt-0.5">
-                {lang === 'bn'
-                  ? `নির্ধারিত কাট-অফ সময়ের (${cutoffTime}) আগে আগামীকালের মিল অন/অফ করুন`
-                  : `Toggle tomorrow's meals before automatic cutoff lock time (${cutoffTime})`}
-              </p>
+        {/* User Individual Account Ledger Card */}
+        <div className="lg:col-span-6 rounded-2xl bg-white border border-[#173125]/10 p-5 flex flex-col justify-between shadow-sm">
+          <div>
+            <div className="flex items-center justify-between gap-2 pb-3 border-b border-slate-100">
+              <div className="flex items-center gap-2.5">
+                <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center font-bold text-sm shrink-0">
+                  <UserCheck className="w-5 h-5" />
+                </div>
+                <div>
+                  <h2 className="text-base font-bold text-[#173125]">
+                    {mySummary
+                      ? (lang === 'bn' ? `${mySummary.member.name}-এর হিসাব` : `${mySummary.member.name}'s Account`)
+                      : (lang === 'bn' ? 'আমার হিসাব সারসংক্ষেপ' : 'My Account Summary')}
+                  </h2>
+                  <p className="text-xs text-slate-500">
+                    {lang === 'bn' ? `${monthLabel}-এর ব্যক্তিগত মিল ও ব্যালেন্স হিসাব` : `Personal meals & balance for ${monthLabel}`}
+                  </p>
+                </div>
+              </div>
+
+              {mySummary && (
+                <button
+                  type="button"
+                  onClick={() => onInspectMemberStatement(mySummary)}
+                  className="px-2.5 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-semibold transition"
+                >
+                  {lang === 'bn' ? 'বিস্তারিত' : 'Statement'}
+                </button>
+              )}
             </div>
 
-            {isManager && (
-              <div className="flex items-center gap-1.5 text-xs">
-                <Clock className="w-3.5 h-3.5 text-[#438A53]" />
-                <label htmlFor="cutoff-input" className="text-slate-600 whitespace-nowrap">
-                  {lang === 'bn' ? 'কাট-অফ:' : 'Cutoff:'}
-                </label>
-                <input
-                  id="cutoff-input"
-                  type="time"
-                  value={cutoffTime}
-                  onChange={(e) => onUpdateCutoffTime(e.target.value || '22:00')}
-                  className="px-2 py-1 rounded-lg border border-slate-200 text-xs font-numeric text-[#173125]"
-                />
+            {mySummary ? (
+              <div className="mt-4 space-y-3.5">
+                {/* Balance Status Banner */}
+                <div
+                  className={`p-3.5 rounded-xl border flex items-center justify-between gap-3 ${
+                    mySummary.netBalance >= 0
+                      ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-900'
+                      : 'bg-rose-500/10 border-rose-500/30 text-rose-900'
+                  }`}
+                >
+                  <div>
+                    <span className="text-[11px] font-medium uppercase tracking-wider block text-slate-500">
+                      {lang === 'bn' ? 'বর্তমান ব্যালেন্স স্ট্যাটাস' : 'Net Balance Status'}
+                    </span>
+                    <span className="text-lg font-bold font-numeric">
+                      {formatCurrency(Math.abs(mySummary.netBalance), lang)}
+                    </span>
+                  </div>
+                  <span
+                    className={`px-3 py-1 rounded-full text-xs font-bold ${
+                      mySummary.netBalance >= 0
+                        ? 'bg-emerald-600 text-white'
+                        : 'bg-rose-600 text-white'
+                    }`}
+                  >
+                    {mySummary.netBalance >= 0
+                      ? (lang === 'bn' ? 'মেস থেকে পাবেন' : 'Refundable (Due to you)')
+                      : (lang === 'bn' ? 'বকেয়া দিতে হবে' : 'Pending Due (Pay to Mess)')}
+                  </span>
+                </div>
+
+                {/* 4 Key Accounting Metrics */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-center">
+                  <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-100">
+                    <span className="text-[10px] text-slate-500 block">{lang === 'bn' ? 'মোট মিল' : 'Total Meals'}</span>
+                    <span className="text-base font-bold font-numeric text-[#173125]">
+                      {mySummary.totalMeals.toFixed(1)}
+                    </span>
+                  </div>
+
+                  <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-100">
+                    <span className="text-[10px] text-slate-500 block">{lang === 'bn' ? 'মিল খরচ' : 'Meal Cost'}</span>
+                    <span className="text-base font-bold font-numeric text-[#173125]">
+                      {formatCurrency(mySummary.mealCost, lang)}
+                    </span>
+                  </div>
+
+                  <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-100">
+                    <span className="text-[10px] text-slate-500 block">{lang === 'bn' ? 'শেয়ার্ড খরচ' : 'Shared Cost'}</span>
+                    <span className="text-base font-bold font-numeric text-[#173125]">
+                      {formatCurrency(mySummary.sharedCost, lang)}
+                    </span>
+                  </div>
+
+                  <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-100">
+                    <span className="text-[10px] text-slate-500 block">{lang === 'bn' ? 'মোট জমা / ক্রেডিট' : 'Total Credit'}</span>
+                    <span className="text-base font-bold font-numeric text-emerald-600">
+                      {formatCurrency(mySummary.totalCredit, lang)}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Breakdown details */}
+                <div className="p-3 rounded-xl bg-slate-50/70 border border-slate-100 text-xs space-y-1.5 text-slate-600">
+                  <div className="flex justify-between">
+                    <span>{lang === 'bn' ? 'নাস্তা / দুপুর / রাত:' : 'B / L / D Counts:'}</span>
+                    <span className="font-numeric font-semibold text-[#173125]">
+                      {mySummary.breakfastCount} / {mySummary.lunchCount} / {mySummary.dinnerCount}
+                      {mySummary.guestMealCount > 0 ? ` (+${mySummary.guestMealCount} Guest)` : ''}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>{lang === 'bn' ? 'নগদ / ব্যাংক জমা:' : 'Cash / Bank Deposit:'}</span>
+                    <span className="font-numeric font-semibold text-[#173125]">
+                      {formatCurrency(mySummary.cashDeposit, lang)}
+                    </span>
+                  </div>
+                  {mySummary.paidExpenseCredit > 0 && (
+                    <div className="flex justify-between">
+                      <span>{lang === 'bn' ? 'নিজের পকেট থেকে বাজার খরচ:' : 'Bazar Paid from Pocket:'}</span>
+                      <span className="font-numeric font-semibold text-emerald-600">
+                        {formatCurrency(mySummary.paidExpenseCredit, lang)}
+                      </span>
+                    </div>
+                  )}
+                  <div className="flex justify-between border-t border-slate-200 pt-1.5 font-bold text-[#173125]">
+                    <span>{lang === 'bn' ? 'মোট খরচ (মিল + শেয়ার্ড):' : 'Total Expense (Meal + Shared):'}</span>
+                    <span className="font-numeric">
+                      {formatCurrency(mySummary.totalCost, lang)}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="py-8 text-center text-slate-400 text-xs">
+                {lang === 'bn' ? 'এই ইউজারের জন্য কোনো সক্রিয় মেম্বার হিসাব পাওয়া যায়নি।' : 'No accounting record linked yet.'}
               </div>
             )}
-          </div>
-
-          <div className="mt-4 pt-4 border-t border-slate-100 space-y-3">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div className="flex items-center gap-2">
-                <label htmlFor="self-meal-member" className="text-xs font-medium text-slate-600 whitespace-nowrap">
-                  {lang === 'bn' ? 'মেম্বার নির্বাচন:' : 'Select Member:'}
-                </label>
-                <select
-                  id="self-meal-member"
-                  value={selectedMemberIdForSelfMeal}
-                  onChange={(e) => onChangeSelfMealMember(Number(e.target.value))}
-                  className="px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-semibold text-[#173125] bg-[#F6F8F5]"
-                >
-                  {members
-                    .filter((m) => m.isActive)
-                    .map((m) => (
-                      <option key={m.id} value={m.id}>
-                        {m.name} ({m.roomNumber})
-                      </option>
-                    ))}
-                </select>
-              </div>
-              <span className="text-xs font-numeric text-[#438A53] font-semibold">
-                {lang === 'bn' ? 'তারিখ:' : 'Date:'} {tomorrowDate}
-              </span>
-            </div>
-
-            <div className="grid grid-cols-3 gap-2.5">
-              <button
-                type="button"
-                onClick={() =>
-                  onSaveSelfMeal(
-                    selectedMemberIdForSelfMeal,
-                    tomorrowDate,
-                    currentB > 0 ? 0 : 0.5,
-                    currentL,
-                    currentD,
-                    currentG,
-                    selfNote
-                  )
-                }
-                className={`p-3 rounded-xl border text-center transition-colors ${
-                  currentB > 0
-                    ? 'bg-[#173125] text-white border-[#173125]'
-                    : 'bg-slate-50 text-slate-500 border-slate-200'
-                }`}
-              >
-                <p className="text-xs font-semibold whitespace-nowrap">
-                  {lang === 'bn' ? 'সকাল (Breakfast)' : 'Breakfast'}
-                </p>
-                <p className="text-lg font-bold font-numeric mt-1 text-[#FED24F]">
-                  {currentB > 0 ? currentB.toFixed(1) : 'OFF (0)'}
-                </p>
-              </button>
-
-              <button
-                type="button"
-                onClick={() =>
-                  onSaveSelfMeal(
-                    selectedMemberIdForSelfMeal,
-                    tomorrowDate,
-                    currentB,
-                    currentL > 0 ? 0 : 1,
-                    currentD,
-                    currentG,
-                    selfNote
-                  )
-                }
-                className={`p-3 rounded-xl border text-center transition-colors ${
-                  currentL > 0
-                    ? 'bg-[#173125] text-white border-[#173125]'
-                    : 'bg-slate-50 text-slate-500 border-slate-200'
-                }`}
-              >
-                <p className="text-xs font-semibold whitespace-nowrap">
-                  {lang === 'bn' ? 'দুপুর (Lunch)' : 'Lunch'}
-                </p>
-                <p className="text-lg font-bold font-numeric mt-1 text-[#B2D959]">
-                  {currentL > 0 ? currentL.toFixed(1) : 'OFF (0)'}
-                </p>
-              </button>
-
-              <button
-                type="button"
-                onClick={() =>
-                  onSaveSelfMeal(
-                    selectedMemberIdForSelfMeal,
-                    tomorrowDate,
-                    currentB,
-                    currentL,
-                    currentD > 0 ? 0 : 1,
-                    currentG,
-                    selfNote
-                  )
-                }
-                className={`p-3 rounded-xl border text-center transition-colors ${
-                  currentD > 0
-                    ? 'bg-[#173125] text-white border-[#173125]'
-                    : 'bg-slate-50 text-slate-500 border-slate-200'
-                }`}
-              >
-                <p className="text-xs font-semibold whitespace-nowrap">
-                  {lang === 'bn' ? 'রাত (Dinner)' : 'Dinner'}
-                </p>
-                <p className="text-lg font-bold font-numeric mt-1 text-[#7EC151]">
-                  {currentD > 0 ? currentD.toFixed(1) : 'OFF (0)'}
-                </p>
-              </button>
-            </div>
-
-            <div className="flex items-center gap-2 pt-1">
-              <input
-                type="text"
-                value={selfNote}
-                onChange={(e) => setSelfNote(e.target.value)}
-                placeholder={
-                  lang === 'bn'
-                    ? 'গেস্ট নোট বা মিল বন্ধের কারণ লিখুন...'
-                    : 'Add guest note or meal off reason...'
-                }
-                className="flex-1 px-3 py-2 rounded-lg border border-slate-200 text-xs text-[#173125]"
-              />
-              <button
-                type="button"
-                onClick={() => {
-                  onSaveSelfMeal(
-                    selectedMemberIdForSelfMeal,
-                    tomorrowDate,
-                    currentB,
-                    currentL,
-                    currentD,
-                    currentG,
-                    selfNote
-                  );
-                  setSelfSavedToast(true);
-                  setTimeout(() => setSelfSavedToast(false), 2000);
-                }}
-                className="min-h-[38px] px-4 py-2 rounded-lg bg-[#438A53] hover:bg-[#173125] text-white text-xs font-semibold whitespace-nowrap shrink-0 transition-colors"
-              >
-                {selfSavedToast
-                  ? lang === 'bn'
-                    ? 'সংরক্ষিত!'
-                    : 'Saved!'
-                  : lang === 'bn'
-                    ? 'মিল সেভ করুন'
-                    : 'Save Meal'}
-              </button>
-            </div>
           </div>
         </div>
 
         {/* Bazar Roster Card */}
-        <div className="lg:col-span-6 rounded-2xl bg-white border border-[#173125]/10 p-5 flex flex-col justify-between">
+        <div className="lg:col-span-6 rounded-2xl bg-white border border-[#173125]/10 p-5 flex flex-col justify-between shadow-sm">
           <div>
-            <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center justify-between gap-2 pb-3 border-b border-slate-100">
               <div>
                 <h2 className="text-base font-bold text-[#173125] flex items-center gap-2">
                   <ClipboardList className="w-4 h-4 text-[#438A53]" />
@@ -608,14 +557,14 @@ export function HomeTab({
                 </h2>
                 <p className="text-xs text-slate-500 mt-0.5">
                   {lang === 'bn'
-                    ? 'কোন তারিখে কে বাজার করবেন তার তালিকা ও সম্পন্ন স্ট্যাটাস'
+                    ? 'কোন তারিখে কে বাজার করবেন তার তালিকা ও স্ট্যাটাস'
                     : 'Scheduled bazar dates by member with completion tracking'}
                 </p>
               </div>
               <button
                 type="button"
                 onClick={() => setShowRosterModal(true)}
-                className="min-h-[36px] px-3 py-1.5 rounded-lg bg-[#173125] hover:bg-[#438A53] text-white text-xs font-semibold flex items-center gap-1.5 whitespace-nowrap shrink-0 transition-colors"
+                className="min-h-[34px] px-3 py-1.5 rounded-lg bg-[#173125] hover:bg-[#438A53] text-white text-xs font-semibold flex items-center gap-1.5 whitespace-nowrap shrink-0 transition-colors"
               >
                 <Plus className="w-3.5 h-3.5 text-[#FED24F]" />
                 <span>{lang === 'bn' ? 'রোস্টার যোগ' : 'Add Duty'}</span>
@@ -624,7 +573,7 @@ export function HomeTab({
 
             <div className="divide-y divide-slate-100 mt-3">
               {rosters.length === 0 ? (
-                <p className="text-xs text-slate-400 py-6 text-center">
+                <p className="text-xs text-slate-400 py-8 text-center">
                   {lang === 'bn'
                     ? 'এই মাসে এখনো কোনো বাজার রোস্টার যোগ করা হয়নি'
                     : 'No bazar roster entries scheduled yet'}
@@ -654,7 +603,7 @@ export function HomeTab({
                       <button
                         type="button"
                         onClick={() => onToggleRosterStatus(r.id)}
-                        className={`min-h-[34px] px-2.5 py-1 rounded-lg text-xs font-medium flex items-center gap-1 whitespace-nowrap transition-colors ${
+                        className={`min-h-[30px] px-2.5 py-1 rounded-lg text-xs font-medium flex items-center gap-1 whitespace-nowrap transition-colors ${
                           r.status === 'COMPLETED'
                             ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
                             : 'bg-amber-50 text-amber-800 border border-amber-200'
@@ -665,7 +614,7 @@ export function HomeTab({
                           {r.status === 'COMPLETED'
                             ? lang === 'bn'
                               ? 'সম্পন্ন'
-                              : 'Completed'
+                              : 'Done'
                             : lang === 'bn'
                               ? 'আসন্ন'
                               : 'Upcoming'}
@@ -676,7 +625,7 @@ export function HomeTab({
                           type="button"
                           onClick={() => onDeleteRoster(r.id)}
                           aria-label={`Delete roster ${r.memberName}`}
-                          className="min-h-[34px] min-w-[34px] rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 flex items-center justify-center transition-colors"
+                          className="min-h-[30px] min-w-[30px] rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 flex items-center justify-center transition-colors"
                         >
                           <XCircle className="w-4 h-4" />
                         </button>

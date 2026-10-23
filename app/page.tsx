@@ -182,12 +182,29 @@ export default function MessManagerApp() {
           } else {
             setIsManager(false);
           }
+          if (user.memberId) {
+            setSelectedSelfMealMemberId(user.memberId);
+          }
         }
       })
       .finally(() => {
         setAuthChecked(true);
       });
   }, []);
+
+  // Lock self-meal member ID for members
+  useEffect(() => {
+    if (currentUser && currentUser.role === 'MEMBER') {
+      if (currentUser.memberId) {
+        setSelectedSelfMealMemberId(currentUser.memberId);
+      } else {
+        const found = members.find((m) => m.notes?.toLowerCase() === currentUser.username.toLowerCase());
+        if (found) {
+          setSelectedSelfMealMemberId(found.id);
+        }
+      }
+    }
+  }, [currentUser, members]);
 
   // MongoDB Real-time Sync and Periodic Polling
   const syncWithMongo = async () => {
@@ -1101,12 +1118,13 @@ export default function MessManagerApp() {
           <>
             {activeTab === 'home' && (
               <HomeTab
-            lang={lang}
-            messId={messId}
-            messName={messName}
-            monthKey={monthKey}
-            isManager={isManager}
-            accounting={accounting}
+                lang={lang}
+                messId={messId}
+                messName={messName}
+                monthKey={monthKey}
+                isManager={isManager}
+                currentUser={currentUser}
+                accounting={accounting}
             notice={notice}
             onSaveNotice={handleSaveNotice}
             cutoffTime={cutoffTime}
