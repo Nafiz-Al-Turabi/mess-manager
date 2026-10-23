@@ -384,8 +384,8 @@ export function HomeTab({
               </p>
               <p className="text-[11px] text-slate-500 whitespace-nowrap truncate">
                 {lang === "bn"
-                  ? "সকাল, দুপুর, রাত ও গেস্ট"
-                  : "Breakfast, Lunch & Dinner"}
+                  ? "দুপুর, রাত ও গেস্ট"
+                  : "Lunch, Dinner & Guest"}
               </p>
             </button>
 
@@ -566,12 +566,11 @@ export function HomeTab({
                   <div className="flex justify-between">
                     <span>
                       {lang === "bn"
-                        ? "নাস্তা / দুপুর / রাত:"
-                        : "B / L / D Counts:"}
+                        ? "দুপুর / রাত মিল:"
+                        : "L / D Meal Counts:"}
                     </span>
                     <span className="font-numeric font-semibold text-[#173125]">
-                      {mySummary.breakfastCount} / {mySummary.lunchCount} /{" "}
-                      {mySummary.dinnerCount}
+                      {mySummary.lunchCount} / {mySummary.dinnerCount}
                       {mySummary.guestMealCount > 0
                         ? ` (+${mySummary.guestMealCount} Guest)`
                         : ""}

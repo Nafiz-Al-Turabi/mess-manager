@@ -214,7 +214,9 @@ export default function MessManagerApp() {
       if (data.settings) {
         if (data.settings.messName) setMessName(data.settings.messName);
         if (data.settings.managerPin) setManagerPin(data.settings.managerPin);
-        if (Array.isArray(data.settings.lockedDates)) setLockedDates(data.settings.lockedDates);
+        if (Array.isArray(data.settings.lockedDates)) {
+          setLockedDates(data.settings.lockedDates);
+        }
       }
 
       const nextMembers: Member[] = [];
@@ -459,14 +461,14 @@ export default function MessManagerApp() {
     }
 
     const mem = members.find((m) => m.id === memberId);
-    const total = (breakfast + lunch + dinner + guestMeal).toFixed(1);
+    const total = Math.round(lunch + dinner + guestMeal);
     triggerToast(
       lang === 'bn'
         ? `${mem ? mem.name : 'মেম্বার'}-এর মিল আপডেট হয়েছে (${total} মিল)`
         : `Meal updated for ${mem ? mem.name : 'Member'} (${total} meals)`,
       lang === 'bn'
-        ? `তারিখ: ${date} · সকাল: ${breakfast}, দুপুর: ${lunch}, রাত: ${dinner}, গেস্ট: ${guestMeal}`
-        : `Date: ${date} · B:${breakfast} L:${lunch} D:${dinner} G:${guestMeal}`,
+        ? `তারিখ: ${date} · দুপুর: ${lunch}, রাত: ${dinner}, গেস্ট: ${guestMeal}`
+        : `Date: ${date} · Lunch:${lunch} Dinner:${dinner} Guest:${guestMeal}`,
       'success'
     );
   };
@@ -525,8 +527,8 @@ export default function MessManagerApp() {
           ? `${activeList.length} জন সক্রিয় মেম্বারের ফুল মিল সেট হয়েছে`
           : `Quick-filled meals for ${activeList.length} active members`,
       lang === 'bn'
-        ? `তারিখ: ${date} · সকাল: ${bWeight}, দুপুর: ${lWeight}, রাত: ${dWeight}`
-        : `Date: ${date} (${bWeight} + ${lWeight} + ${dWeight})`,
+        ? `তারিখ: ${date} · দুপুর: ${lWeight}, রাত: ${dWeight}`
+        : `Date: ${date} (Lunch: ${lWeight}, Dinner: ${dWeight})`,
       isReset ? 'warning' : 'success'
     );
   };
@@ -1145,6 +1147,7 @@ export default function MessManagerApp() {
             selectedDate={selectedMealDate}
             onSelectDate={setSelectedMealDate}
             isManager={isManager}
+            currentUser={currentUser}
             isSelectedDateLocked={selectedDateLocked}
             onToggleDateLock={handleToggleDateLock}
             members={members}

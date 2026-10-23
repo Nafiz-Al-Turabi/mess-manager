@@ -529,7 +529,7 @@ export function ReportsMembersTab({
                   {formatNumber(statementMemberSummary.totalMeals, lang, 1)}
                 </p>
                 <p className="text-[10px] font-numeric text-slate-500">
-                  B:{statementMemberSummary.breakfastCount} L:{statementMemberSummary.lunchCount} D:{statementMemberSummary.dinnerCount} G:{statementMemberSummary.guestMealCount}
+                  L:{statementMemberSummary.lunchCount} D:{statementMemberSummary.dinnerCount} G:{statementMemberSummary.guestMealCount}
                 </p>
               </div>
               <div className="p-3 rounded-xl bg-[#F6F8F5]">
