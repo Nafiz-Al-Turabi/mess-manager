@@ -153,7 +153,7 @@ export function ReportsMembersTab({
               <span>
                 {lang === 'bn'
                   ? `${monthLabel} — পূর্ণাঙ্গ মেস হিসাব শীট`
-                  : `${monthLabel} — Full Monthly Accounting Sheet`}
+                  : `${monthLabel} — Accounting Sheet`}
               </span>
             </h1>
             <p className="text-xs text-slate-500 mt-0.5">
@@ -163,11 +163,11 @@ export function ReportsMembersTab({
             </p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2 no-print">
+          <div className="grid grid-cols-2 md:flex flex-wrap items-center gap-2 no-print w-full md:w-fit">
             <button
               type="button"
               onClick={onDownloadMonthlyPdf}
-              className="min-h-[40px] px-3.5 py-2 rounded-xl bg-[#173125] hover:bg-[#438A53] text-white text-xs font-semibold flex items-center gap-1.5 whitespace-nowrap transition-colors"
+              className="w-full md:w-fit min-h-[40px] px-3.5 py-2 rounded-xl bg-[#173125] hover:bg-[#438A53] text-white text-xs font-semibold flex items-center gap-1.5 whitespace-nowrap transition-colors"
             >
               <Download className="w-4 h-4 text-[#FED24F]" />
               <span>{lang === 'bn' ? 'পিডিএফ ডাউনলোড (PDF)' : 'Download PDF'}</span>
@@ -186,7 +186,7 @@ export function ReportsMembersTab({
               <button
                 type="button"
                 onClick={onToggleMonthLock}
-                className={`min-h-[40px] px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 whitespace-nowrap transition-colors ${
+                className={`col-span-2 min-h-[40px] px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center justify-center md:justify-start gap-1.5 whitespace-nowrap transition-colors ${
                   isMonthLocked
                     ? 'bg-amber-100 text-amber-900 border border-amber-300'
                     : 'bg-[#438A53]/15 text-[#173125] hover:bg-[#438A53]/25'
@@ -372,7 +372,7 @@ export function ReportsMembersTab({
               <span>
                 {lang === 'bn'
                   ? `মেম্বার ডিরেক্টরি (${formatNumber(members.length, lang)} জন মেম্বার)`
-                  : `Mess Member Directory (${members.length} Members)`}
+                  : `Mess Member (${members.length} Members)`}
               </span>
             </h2>
             <p className="text-xs text-slate-500 mt-0.5">
