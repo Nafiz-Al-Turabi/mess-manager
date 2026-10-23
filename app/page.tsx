@@ -114,7 +114,7 @@ export default function MessManagerApp() {
 
   // Mess Directory State
   const [messId, setMessId] = useState<string>(DEFAULT_MESS_ID);
-  const [messName, setMessName] = useState<string>('স্বপ্ননীড় মেস');
+  const [messName, setMessName] = useState<string>('My Mess');
   const [managerPin, setManagerPin] = useState<string>(DEFAULT_MANAGER_PIN);
   const [managerUids, setManagerUids] = useState<string[]>([]);
   const [memberUids, setMemberUids] = useState<string[]>([]);
@@ -130,89 +130,46 @@ export default function MessManagerApp() {
   const [showUserManagementModal, setShowUserManagementModal] = useState<boolean>(false);
 
   // Selected Month & Date
-  const [monthKey, setMonthKey] = useState<string>('2026-10');
-  const [selectedMealDate, setSelectedMealDate] = useState<string>('2026-10-21');
+  const currentMonthStr = useMemo(() => {
+    const now = new Date();
+    const y = now.getFullYear();
+    const m = String(now.getMonth() + 1).padStart(2, '0');
+    return `${y}-${m}`;
+  }, []);
+  const todayStr = useMemo(() => {
+    const now = new Date();
+    const y = now.getFullYear();
+    const m = String(now.getMonth() + 1).padStart(2, '0');
+    const d = String(now.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  }, []);
+
+  const [monthKey, setMonthKey] = useState<string>(currentMonthStr);
+  const [selectedMealDate, setSelectedMealDate] = useState<string>(todayStr);
   const [selectedSelfMealMemberId, setSelectedSelfMealMemberId] =
     useState<number>(1);
 
-  // Domain Records State
-  const seed = useMemo(() => getInitialSeedData(), []);
-  const [members, setMembers] = useState<Member[]>(seed.members);
-  const [meals, setMeals] = useState<MealRecord[]>(seed.meals);
-  const [expenses, setExpenses] = useState<ExpenseRecord[]>(seed.expenses);
-  const [deposits, setDeposits] = useState<DepositRecord[]>(seed.deposits);
-  const [notice, setNotice] = useState<NoticeItem>(seed.notice);
-  const [rosters, setRosters] = useState<RosterItem[]>(seed.rosters);
-  const [activityLogs, setActivityLogs] = useState<ActivityLogItem[]>(
-    seed.activityLogs
-  );
+  // Domain Records State - Strictly MongoDB Only (Clean Start)
+  const [members, setMembers] = useState<Member[]>([]);
+  const [meals, setMeals] = useState<MealRecord[]>([]);
+  const [expenses, setExpenses] = useState<ExpenseRecord[]>([]);
+  const [deposits, setDeposits] = useState<DepositRecord[]>([]);
+  const [notice, setNotice] = useState<NoticeItem>({
+    id: 'notice_default',
+    title: '',
+    message: '',
+    category: 'GENERAL',
+    postedBy: '',
+    postedAt: '',
+  });
+  const [rosters, setRosters] = useState<RosterItem[]>([]);
+  const [activityLogs, setActivityLogs] = useState<ActivityLogItem[]>([]);
   const [joinRequests, setJoinRequests] = useState<JoinRequestItem[]>([]);
 
   // Modals
   const [showMessSwitcher, setShowMessSwitcher] = useState(false);
   const [statementMemberSummary, setStatementMemberSummary] =
     useState<MemberAccountingSummary | null>(null);
-
-  // Load offline state from localStorage on messId change
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem(`${STORAGE_KEY_PREFIX}${messId}`);
-      if (raw) {
-        const parsed = JSON.parse(raw);
-        if (Array.isArray(parsed.members) && parsed.members.length > 0) {
-          setMembers(parsed.members);
-        }
-        if (Array.isArray(parsed.meals)) setMeals(parsed.meals);
-        if (Array.isArray(parsed.expenses)) setExpenses(parsed.expenses);
-        if (Array.isArray(parsed.deposits)) setDeposits(parsed.deposits);
-        if (parsed.notice) setNotice(parsed.notice);
-        if (Array.isArray(parsed.rosters)) setRosters(parsed.rosters);
-        if (Array.isArray(parsed.activityLogs))
-          setActivityLogs(parsed.activityLogs);
-        if (Array.isArray(parsed.lockedDates))
-          setLockedDates(parsed.lockedDates);
-        if (parsed.messName) setMessName(parsed.messName);
-        if (parsed.managerPin) setManagerPin(parsed.managerPin);
-      }
-    } catch {
-      // Ignore storage parse error
-    }
-  }, [messId]);
-
-  // Persist to localStorage automatically for Offline Mode resilience
-  useEffect(() => {
-    try {
-      localStorage.setItem(
-        `${STORAGE_KEY_PREFIX}${messId}`,
-        JSON.stringify({
-          messName,
-          managerPin,
-          lockedDates,
-          members,
-          meals,
-          expenses,
-          deposits,
-          notice,
-          rosters,
-          activityLogs,
-        })
-      );
-    } catch {
-      // Ignore storage quota error
-    }
-  }, [
-    messId,
-    messName,
-    managerPin,
-    lockedDates,
-    members,
-    meals,
-    expenses,
-    deposits,
-    notice,
-    rosters,
-    activityLogs,
-  ]);
 
   // Check currently logged in user on initial load
   useEffect(() => {
@@ -242,15 +199,15 @@ export default function MessManagerApp() {
         if (Array.isArray(data.settings.lockedDates)) setLockedDates(data.settings.lockedDates);
       }
 
-      if (Array.isArray(data.records) && data.records.length > 0) {
-        const nextMembers: Member[] = [];
-        const nextMeals: MealRecord[] = [];
-        const nextExpenses: ExpenseRecord[] = [];
-        const nextDeposits: DepositRecord[] = [];
-        const nextRosters: RosterItem[] = [];
-        const nextLogs: ActivityLogItem[] = [];
-        let nextNotice: NoticeItem | null = null;
+      const nextMembers: Member[] = [];
+      const nextMeals: MealRecord[] = [];
+      const nextExpenses: ExpenseRecord[] = [];
+      const nextDeposits: DepositRecord[] = [];
+      const nextRosters: RosterItem[] = [];
+      const nextLogs: ActivityLogItem[] = [];
+      let nextNotice: NoticeItem | null = null;
 
+      if (Array.isArray(data.records) && data.records.length > 0) {
         data.records.forEach((doc) => {
           if (doc.recordType === 'MEMBER') {
             nextMembers.push(decodeMemberFromCloud(doc));
@@ -270,15 +227,15 @@ export default function MessManagerApp() {
             }
           }
         });
-
-        if (nextMembers.length > 0) setMembers(nextMembers.sort((a, b) => a.id - b.id));
-        if (nextMeals.length > 0) setMeals(nextMeals);
-        if (nextExpenses.length > 0) setExpenses(nextExpenses.sort((a, b) => b.date.localeCompare(a.date)));
-        if (nextDeposits.length > 0) setDeposits(nextDeposits.sort((a, b) => b.date.localeCompare(a.date)));
-        if (nextNotice) setNotice(nextNotice);
-        if (nextRosters.length > 0) setRosters(nextRosters.sort((a, b) => a.date.localeCompare(b.date)));
-        if (nextLogs.length > 0) setActivityLogs(nextLogs.sort((a, b) => b.id - a.id));
       }
+
+      setMembers(nextMembers.sort((a, b) => a.id - b.id));
+      setMeals(nextMeals);
+      setExpenses(nextExpenses.sort((a, b) => b.date.localeCompare(a.date)));
+      setDeposits(nextDeposits.sort((a, b) => b.date.localeCompare(a.date)));
+      if (nextNotice) setNotice(nextNotice);
+      setRosters(nextRosters.sort((a, b) => a.date.localeCompare(b.date)));
+      setActivityLogs(nextLogs.sort((a, b) => b.id - a.id));
     } catch (e) {
       console.warn('Mongo fetch sync warning:', e);
     }
