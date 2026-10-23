@@ -4,10 +4,13 @@ import React, { useState } from "react";
 import {
   Bell,
   CheckCircle2,
+  ChevronLeft,
+  ChevronRight,
   ClipboardList,
   Copy,
   Edit3,
   FileSpreadsheet,
+  History,
   MessageCircle,
   Plus,
   Receipt,
@@ -17,6 +20,7 @@ import {
   UserPlus,
   Utensils,
   Wallet,
+  X,
   XCircle,
 } from "lucide-react";
 import {
@@ -136,6 +140,11 @@ export function HomeTab({
 
   // Copy feedback
   const [copiedMemberId, setCopiedMemberId] = useState<number | null>(null);
+
+  // Activity Log Modal & Pagination State
+  const [showAllLogsModal, setShowAllLogsModal] = useState(false);
+  const [logPage, setLogPage] = useState(1);
+  const logsPerPage = 10;
 
   const dueMembers = accounting.memberSummaries.filter(
     (m) => m.netBalance < -1,
@@ -1010,33 +1019,59 @@ export function HomeTab({
 
         {/* Activity Audit Log */}
         <div className="rounded-2xl bg-white border border-[#173125]/10 p-5">
-          <h2 className="text-base font-bold text-[#173125]">
-            {lang === "bn"
-              ? "সাম্প্রতিক অ্যাক্টিভিটি লগ (Audit Log)"
-              : "Recent Activity Audit Log"}
-          </h2>
-          <p className="text-xs text-slate-500 mt-0.5">
-            {lang === "bn"
-              ? "মেসের সর্বশেষ মিল, খরচ এবং জমার পরিবর্তনের রেকর্ড"
-              : "Chronological audit trail of meals, expenses, and deposits"}
-          </p>
+          <div className="flex items-center justify-between gap-2">
+            <div>
+              <h2 className="text-base font-bold text-[#173125]">
+                {lang === "bn"
+                  ? "সাম্প্রতিক অ্যাক্টিভিটি লগ (Audit Log)"
+                  : "Recent Activity Audit Log"}
+              </h2>
+              <p className="text-xs text-slate-500 mt-0.5">
+                {lang === "bn"
+                  ? "মেসের সর্বশেষ মিল, খরচ এবং জমার পরিবর্তনের রেকর্ড"
+                  : "Chronological audit trail of meals, expenses, and deposits"}
+              </p>
+            </div>
+            {activityLogs.length > 0 && (
+              <button
+                type="button"
+                onClick={() => {
+                  setLogPage(1);
+                  setShowAllLogsModal(true);
+                }}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#F6F8F5] hover:bg-[#173125]/10 text-xs font-semibold text-[#173125] transition-colors cursor-pointer shrink-0"
+              >
+                <History className="w-3.5 h-3.5 text-[#438A53]" />
+                <span>{lang === "bn" ? "সব দেখুন" : "View All"}</span>
+                <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-[#173125]/10 font-numeric">
+                  {activityLogs.length}
+                </span>
+              </button>
+            )}
+          </div>
 
           <div className="divide-y divide-slate-100 mt-4">
-            {activityLogs.slice(0, 6).map((log) => (
-              <div key={log.id} className="py-2.5">
-                <div className="flex items-center justify-between gap-2">
-                  <p className="text-xs font-bold text-[#173125] truncate">
-                    {log.title}
+            {activityLogs.length === 0 ? (
+              <p className="py-6 text-center text-xs text-slate-400">
+                {lang === "bn" ? "এখনো কোনো লগ এন্ট্রি নেই" : "No activity logs yet"}
+              </p>
+            ) : (
+              activityLogs.slice(0, 6).map((log) => (
+                <div key={log.id} className="py-2.5">
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-xs font-bold text-[#173125] truncate">
+                      {log.title}
+                    </p>
+                    <span className="text-[11px] font-numeric text-slate-400 shrink-0">
+                      {log.timeText}
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-600 mt-0.5 line-clamp-1">
+                    {log.description}
                   </p>
-                  <span className="text-[11px] font-numeric text-slate-400 shrink-0">
-                    {log.timeText}
-                  </span>
                 </div>
-                <p className="text-xs text-slate-600 mt-0.5 line-clamp-1">
-                  {log.description}
-                </p>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </div>
       </div>
@@ -1198,6 +1233,123 @@ export function HomeTab({
                 {lang === "bn" ? "রোস্টার সেভ করুন" : "Save Roster"}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* All Activity Logs Modal with Pagination */}
+      {showAllLogsModal && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
+          <div className="bg-white rounded-3xl max-w-2xl w-full p-5 sm:p-6 shadow-2xl flex flex-col max-h-[90vh]">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between pb-4 border-b border-slate-100">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-[#173125]/10 flex items-center justify-center text-[#173125]">
+                  <History className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base sm:text-lg font-bold text-[#173125]">
+                    {lang === "bn"
+                      ? "সকল অ্যাক্টিভিটি লগ (Audit History)"
+                      : "All Activity Logs"}
+                  </h3>
+                  <p className="text-xs text-slate-500">
+                    {lang === "bn"
+                      ? `সর্বমোট ${activityLogs.length} টি লগ রেকর্ড পাওয়া গেছে`
+                      : `Total ${activityLogs.length} activity records found`}
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowAllLogsModal(false)}
+                className="p-2 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Modal Body - Paginated Log List */}
+            <div className="flex-1 overflow-y-auto divide-y divide-slate-100 py-2 pr-1">
+              {activityLogs.length === 0 ? (
+                <div className="py-12 text-center text-xs text-slate-400">
+                  {lang === "bn"
+                    ? "কোনো অ্যাক্টিভিটি লগ নেই"
+                    : "No activity logs found"}
+                </div>
+              ) : (
+                activityLogs
+                  .slice((logPage - 1) * logsPerPage, logPage * logsPerPage)
+                  .map((log) => (
+                    <div
+                      key={log.id}
+                      className="py-3 px-2 rounded-xl hover:bg-[#F6F8F5] transition-colors"
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <span className="w-2 h-2 rounded-full bg-[#438A53] shrink-0 mt-0.5" />
+                          <p className="text-xs sm:text-sm font-bold text-[#173125] truncate">
+                            {log.title}
+                          </p>
+                        </div>
+                        <span className="text-[11px] font-numeric text-slate-400 shrink-0">
+                          {log.timeText}
+                        </span>
+                      </div>
+                      <p className="text-xs text-slate-600 mt-1 pl-4">
+                        {log.description}
+                      </p>
+                      {log.actorName && (
+                        <p className="text-[10px] text-slate-400 mt-1 pl-4 font-numeric">
+                          {lang === "bn" ? "ইউজার:" : "By:"} {log.actorName}
+                        </p>
+                      )}
+                    </div>
+                  ))
+              )}
+            </div>
+
+            {/* Modal Footer - Previous / Next Pagination */}
+            {activityLogs.length > logsPerPage && (
+              <div className="pt-4 border-t border-slate-100 flex items-center justify-between gap-3 text-xs">
+                <span className="text-slate-500 font-numeric">
+                  {lang === "bn"
+                    ? `পেজ ${logPage} / ${Math.ceil(activityLogs.length / logsPerPage)}`
+                    : `Page ${logPage} of ${Math.ceil(activityLogs.length / logsPerPage)}`}
+                </span>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    disabled={logPage === 1}
+                    onClick={() => setLogPage((p) => Math.max(1, p - 1))}
+                    className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl border border-slate-200 text-xs font-semibold text-[#173125] hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                    <span>{lang === "bn" ? "পূর্ববর্তী" : "Previous"}</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    disabled={
+                      logPage >= Math.ceil(activityLogs.length / logsPerPage)
+                    }
+                    onClick={() =>
+                      setLogPage((p) =>
+                        Math.min(
+                          Math.ceil(activityLogs.length / logsPerPage),
+                          p + 1,
+                        ),
+                      )
+                    }
+                    className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl border border-slate-200 text-xs font-semibold text-[#173125] hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                  >
+                    <span>{lang === "bn" ? "পরবর্তী" : "Next"}</span>
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
