@@ -489,7 +489,7 @@ export function HomeTab({
               <div className="mt-4 space-y-3.5">
                 {/* Balance Status Banner */}
                 <div
-                  className={`p-3.5 rounded-xl border flex items-center justify-between gap-3 ${
+                  className={`p-3.5 rounded-xl border flex flex-col md:flex-row  md:items-center justify-between gap-3 ${
                     mySummary.netBalance >= 0
                       ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-900"
                       : "bg-rose-500/10 border-rose-500/30 text-rose-900"
@@ -506,7 +506,7 @@ export function HomeTab({
                     </span>
                   </div>
                   <span
-                    className={`px-3 py-1 rounded-full text-xs font-bold ${
+                    className={`px-3 py-1 rounded-full text-xs font-bold w-fit ${
                       mySummary.netBalance >= 0
                         ? "bg-emerald-600 text-white"
                         : "bg-rose-600 text-white"
