@@ -1192,6 +1192,7 @@ export default function MessManagerApp() {
             messName={messName}
             monthKey={monthKey}
             isManager={isManager}
+            currentUser={currentUser}
             isMonthLocked={monthLocked}
             onToggleMonthLock={handleToggleMonthLock}
             accounting={accounting}

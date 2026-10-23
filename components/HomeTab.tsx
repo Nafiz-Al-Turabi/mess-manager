@@ -197,18 +197,21 @@ export function HomeTab({
             </p>
           </div>
 
-          <div className="flex justify-center md:justify-start w-full md:w-fit items-center gap-2">
-            <button
-              type="button"
-              onClick={onDownloadMonthlyPdf}
-              className="min-h-[42px] px-4 py-2 rounded-xl bg-[#438A53] hover:bg-[#438A53]/90 text-white text-xs font-semibold flex items-center gap-2 whitespace-nowrap shrink-0 transition-colors"
-            >
-              <FileSpreadsheet className="w-4 h-4 text-[#FED24F]" />
-              <span>
-                {lang === "bn" ? "মাসিক পিডিএফ রিপোর্ট" : "Download PDF Report"}
-              </span>
-            </button>
-          </div>
+          {/* Download Monthly PDF - Only for Admin / Super Admin */}
+          {(currentUser?.role === "SUPER_ADMIN" || currentUser?.role === "ADMIN") && (
+            <div className="flex justify-center md:justify-start w-full md:w-fit items-center gap-2">
+              <button
+                type="button"
+                onClick={onDownloadMonthlyPdf}
+                className="min-h-[42px] px-4 py-2 rounded-xl bg-[#438A53] hover:bg-[#438A53]/90 text-white text-xs font-semibold flex items-center gap-2 whitespace-nowrap shrink-0 transition-colors cursor-pointer"
+              >
+                <FileSpreadsheet className="w-4 h-4 text-[#FED24F]" />
+                <span>
+                  {lang === "bn" ? "মাসিক পিডিএফ রিপোর্ট" : "Download PDF Report"}
+                </span>
+              </button>
+            </div>
+          )}
         </div>
 
         {/* 6 Core Financial Metrics Grid */}

@@ -32,6 +32,7 @@ import {
   formatNumber,
 } from '@/lib/i18n';
 import { generateMemberStatementPdf } from '@/lib/pdf-export';
+import { AppUser } from '@/lib/mongo-client';
 
 interface ReportsMembersTabProps {
   lang: Language;
@@ -39,6 +40,7 @@ interface ReportsMembersTabProps {
   messName: string;
   monthKey: string;
   isManager: boolean;
+  currentUser?: AppUser | null;
   isMonthLocked: boolean;
   onToggleMonthLock: () => void;
   accounting: MonthlyMessAccounting;
@@ -61,6 +63,7 @@ export function ReportsMembersTab({
   messName,
   monthKey,
   isManager,
+  currentUser,
   isMonthLocked,
   onToggleMonthLock,
   accounting,
@@ -164,14 +167,17 @@ export function ReportsMembersTab({
           </div>
 
           <div className="grid grid-cols-2 md:flex flex-wrap items-center gap-2 no-print w-full md:w-fit">
-            <button
-              type="button"
-              onClick={onDownloadMonthlyPdf}
-              className="w-full md:w-fit min-h-[40px] px-3.5 py-2 rounded-xl bg-[#173125] hover:bg-[#438A53] text-white text-xs font-semibold flex items-center gap-1.5 whitespace-nowrap transition-colors"
-            >
-              <Download className="w-4 h-4 text-[#FED24F]" />
-              <span>{lang === 'bn' ? 'পিডিএফ ডাউনলোড (PDF)' : 'Download PDF'}</span>
-            </button>
+            {/* Download PDF - Only for Admin / Super Admin */}
+            {(currentUser?.role === 'SUPER_ADMIN' || currentUser?.role === 'ADMIN') && (
+              <button
+                type="button"
+                onClick={onDownloadMonthlyPdf}
+                className="w-full md:w-fit min-h-[40px] px-3.5 py-2 rounded-xl bg-[#173125] hover:bg-[#438A53] text-white text-xs font-semibold flex items-center gap-1.5 whitespace-nowrap transition-colors cursor-pointer"
+              >
+                <Download className="w-4 h-4 text-[#FED24F]" />
+                <span>{lang === 'bn' ? 'পিডিএফ ডাউনলোড (PDF)' : 'Download PDF'}</span>
+              </button>
+            )}
 
             <button
               type="button"
@@ -645,38 +651,40 @@ export function ReportsMembersTab({
               >
                 {lang === 'bn' ? 'বন্ধ করুন' : 'Close'}
               </button>
-              <button
-                type="button"
-                onClick={() => {
-                  const memberId = statementMemberSummary.member.id;
-                  generateMemberStatementPdf({
-                    messName,
-                    messId,
-                    monthKey,
-                    mealRate: accounting.mealRate,
-                    summary: statementMemberSummary,
-                    memberMeals: meals.filter(
-                      (m) => m.date.startsWith(monthKey) && m.memberId === memberId
-                    ),
-                    memberDeposits: deposits.filter(
-                      (d) => d.date.startsWith(monthKey) && d.memberId === memberId
-                    ),
-                    memberPaidExpenses: expenses.filter(
-                      (e) =>
-                        e.date.startsWith(monthKey) && e.paidByMemberId === memberId
-                    ),
-                  });
-                  onDownloadStatementPdf?.(statementMemberSummary.member.name);
-                }}
-                className="px-4 py-2 rounded-lg bg-[#173125] hover:bg-[#438A53] text-white text-xs font-semibold flex items-center gap-1.5"
-              >
-                <Download className="w-3.5 h-3.5 text-[#FED24F]" />
-                <span>
-                  {lang === 'bn'
-                    ? 'ব্যক্তিগত স্টেটমেন্ট পিডিএফ'
-                    : 'Download Statement PDF'}
-                </span>
-              </button>
+              {(currentUser?.role === 'SUPER_ADMIN' || currentUser?.role === 'ADMIN') && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    const memberId = statementMemberSummary.member.id;
+                    generateMemberStatementPdf({
+                      messName,
+                      messId,
+                      monthKey,
+                      mealRate: accounting.mealRate,
+                      summary: statementMemberSummary,
+                      memberMeals: meals.filter(
+                        (m) => m.date.startsWith(monthKey) && m.memberId === memberId
+                      ),
+                      memberDeposits: deposits.filter(
+                        (d) => d.date.startsWith(monthKey) && d.memberId === memberId
+                      ),
+                      memberPaidExpenses: expenses.filter(
+                        (e) =>
+                          e.date.startsWith(monthKey) && e.paidByMemberId === memberId
+                      ),
+                    });
+                    onDownloadStatementPdf?.(statementMemberSummary.member.name);
+                  }}
+                  className="px-4 py-2 rounded-lg bg-[#173125] hover:bg-[#438A53] text-white text-xs font-semibold flex items-center gap-1.5 cursor-pointer"
+                >
+                  <Download className="w-3.5 h-3.5 text-[#FED24F]" />
+                  <span>
+                    {lang === 'bn'
+                      ? 'ব্যক্তিগত স্টেটমেন্ট পিডিএফ'
+                      : 'Download Statement PDF'}
+                  </span>
+                </button>
+              )}
             </div>
           </div>
         </div>
