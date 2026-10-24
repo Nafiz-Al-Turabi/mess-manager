@@ -217,10 +217,10 @@ export function HomeTab({
         {/* 6 Core Financial Metrics Grid */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 pt-5">
           <div className="p-3.5 rounded-xl bg-white/5 border border-white/10">
-            <p className="text-xs text-white/70 whitespace-nowrap truncate">
+            <p className="text-xs text-white whitespace-nowrap truncate font-bold">
               {lang === "bn" ? "মিল রেট (Meal Rate)" : "Current Meal Rate"}
             </p>
-            <p className="text-xl font-bold font-numeric text-[#FED24F] mt-1">
+            <p className="text-xl font-extrabold font-numeric text-[#FED24F] mt-1">
               {formatCurrency(accounting.mealRate, lang, 2)}
             </p>
             <p className="text-[11px] text-white/60 mt-0.5 whitespace-nowrap truncate">
@@ -229,10 +229,10 @@ export function HomeTab({
           </div>
 
           <div className="p-3.5 rounded-xl bg-white/5 border border-white/10">
-            <p className="text-xs text-white/70 whitespace-nowrap truncate">
+            <p className="text-xs text-white whitespace-nowrap truncate font-bold">
               {lang === "bn" ? "মোট মিল (Total Meals)" : "Total Mess Meals"}
             </p>
-            <p className="text-xl font-bold font-numeric text-[#B2D959] mt-1">
+            <p className="text-xl font-extrabold font-numeric text-[#B2D959] mt-1">
               {formatNumber(accounting.totalMessMeals, lang, 1)}
             </p>
             <p className="text-[11px] text-white/60 mt-0.5 whitespace-nowrap truncate">
@@ -243,10 +243,10 @@ export function HomeTab({
           </div>
 
           <div className="p-3.5 rounded-xl bg-white/5 border border-white/10">
-            <p className="text-xs text-white/70 whitespace-nowrap truncate">
+            <p className="text-xs text-white whitespace-nowrap truncate font-bold">
               {lang === "bn" ? "বাজার খরচ (Food Bazar)" : "Food Bazar Cost"}
             </p>
-            <p className="text-xl font-bold font-numeric text-white mt-1">
+            <p className="text-xl font-extrabold font-numeric text-white mt-1">
               {formatCurrency(accounting.totalFoodCost, lang, 0)}
             </p>
             <p className="text-[11px] text-white/60 mt-0.5 whitespace-nowrap truncate">
@@ -255,12 +255,12 @@ export function HomeTab({
           </div>
 
           <div className="p-3.5 rounded-xl bg-white/5 border border-white/10">
-            <p className="text-xs text-white/70 whitespace-nowrap truncate">
+            <p className="text-xs text-white whitespace-nowrap truncate font-bold">
               {lang === "bn"
                 ? "শেয়ার্ড বিল (Shared Bills)"
                 : "Shared Utility Bills"}
             </p>
-            <p className="text-xl font-bold font-numeric text-white mt-1">
+            <p className="text-xl font-extrabold font-numeric text-white mt-1">
               {formatCurrency(accounting.totalSharedCost, lang, 0)}
             </p>
             <p className="text-[11px] text-[#B2D959] mt-0.5 font-numeric whitespace-nowrap truncate">
@@ -271,12 +271,12 @@ export function HomeTab({
           </div>
 
           <div className="p-3.5 rounded-xl bg-white/5 border border-white/10">
-            <p className="text-xs text-white/70 whitespace-nowrap truncate">
+            <p className="text-xs text-white whitespace-nowrap truncate font-bold">
               {lang === "bn"
                 ? "মোট জমা (Total Credit)"
                 : "Total Deposits & Credit"}
             </p>
-            <p className="text-xl font-bold font-numeric text-[#7EC151] mt-1">
+            <p className="text-xl font-extrabold font-numeric text-[#7EC151] mt-1">
               {formatCurrency(accounting.totalCredits, lang, 0)}
             </p>
             <p className="text-[11px] text-white/60 mt-0.5 whitespace-nowrap truncate">
@@ -287,11 +287,11 @@ export function HomeTab({
           </div>
 
           <div className="p-3.5 rounded-xl bg-white/5 border border-white/10">
-            <p className="text-xs text-white/70 whitespace-nowrap truncate">
+            <p className="text-xs text-white whitespace-nowrap truncate font-bold">
               {lang === "bn" ? "ক্যাশ ইন হ্যান্ড (Balance)" : "Cash in Hand"}
             </p>
             <p
-              className={`text-xl font-bold font-numeric mt-1 ${
+              className={`text-xl font-extrabold font-numeric mt-1 ${
                 accounting.cashInHand >= 0 ? "text-[#FED24F]" : "text-rose-300"
               }`}
             >
