@@ -63,15 +63,13 @@ export function MealsTab({
   const dayTotalBreakfast = dateMeals.reduce((s, m) => s + m.breakfast, 0);
   const dayTotalLunch = dateMeals.reduce((s, m) => s + m.lunch, 0);
   const dayTotalDinner = dateMeals.reduce((s, m) => s + m.dinner, 0);
-  const dayTotalGuest = dateMeals.reduce((s, m) => s + m.guestMeal, 0);
-  const dayGrandTotal =
-    dayTotalBreakfast + dayTotalLunch + dayTotalDinner + dayTotalGuest;
+  const dayGrandTotal = dayTotalLunch + dayTotalDinner;
 
   const canEdit = isManager && !isSelectedDateLocked;
 
   return (
     <div className="space-y-6">
-      {/* Top Toolbar: Date Picker, Breakfast Weight, Date Lock, 1-Click Quick Fill */}
+      {/* Top Toolbar: Date Picker, Date Lock, 1-Click Quick Fill */}
       <section className="rounded-2xl bg-white border border-[#173125]/10 p-5">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
@@ -85,8 +83,8 @@ export function MealsTab({
             </h1>
             <p className="text-xs text-slate-500 mt-0.5">
               {lang === 'bn'
-                ? 'তারিখ নির্বাচন করে দুপুর, রাত এবং গেস্ট মিল প্লাস/মাইনাস বাটনে এন্ট্রি করুন'
-                : 'Select date and adjust per-member lunch, dinner, and guest meal counts'}
+                ? 'তারিখ নির্বাচন করে দুপুর ও রাত মিল প্লাস/মাইনাস বাটনে এন্ট্রি করুন'
+                : 'Select date and adjust per-member lunch and dinner counts'}
             </p>
           </div>
 
@@ -169,7 +167,7 @@ export function MealsTab({
         )}
 
         {/* Selected Date Summary Strip */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4 pt-4 border-t border-slate-100">
+        <div className="grid grid-cols-3 gap-3 mt-4 pt-4 border-t border-slate-100">
           <div className="p-3 rounded-xl bg-[#F6F8F5]">
             <p className="text-xs text-slate-500">
               {lang === 'bn' ? 'দুপুর (Lunch)' : 'Lunch Total'}
@@ -184,14 +182,6 @@ export function MealsTab({
             </p>
             <p className="text-base font-bold font-numeric text-[#173125] mt-0.5">
               {formatNumber(dayTotalDinner, lang, 0)}
-            </p>
-          </div>
-          <div className="p-3 rounded-xl bg-[#F6F8F5]">
-            <p className="text-xs text-slate-500">
-              {lang === 'bn' ? 'গেস্ট মিল (Guest)' : 'Guest Meals'}
-            </p>
-            <p className="text-base font-bold font-numeric text-[#438A53] mt-0.5">
-              {formatNumber(dayTotalGuest, lang, 0)}
             </p>
           </div>
           <div className="p-3 rounded-xl bg-[#173125] text-white">
@@ -238,15 +228,14 @@ export function MealsTab({
           const b = rec ? rec.breakfast : 0;
           const l = rec ? rec.lunch : 0;
           const d = rec ? rec.dinner : 0;
-          const g = rec ? rec.guestMeal : 0;
           const notes = rec ? rec.notes : '';
-          const total = b + l + d + g;
+          const total = l + d;
 
           const adjust = (
             nextB: number,
             nextL: number,
             nextD: number,
-            nextG: number,
+            nextG = 0,
             nextNotes = notes
           ) => {
             if (!canEdit) return;
@@ -256,7 +245,7 @@ export function MealsTab({
               Math.max(0, Number(nextB.toFixed(1))),
               Math.max(0, Number(nextL.toFixed(1))),
               Math.max(0, Number(nextD.toFixed(1))),
-              Math.max(0, Number(nextG.toFixed(1))),
+              0,
               nextNotes
             );
           };
@@ -288,8 +277,8 @@ export function MealsTab({
                 </p>
               </div>
 
-              {/* 3 Meal Counters: Lunch, Dinner, Guest */}
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-3 flex-1">
+              {/* 2 Meal Counters: Lunch, Dinner */}
+              <div className="grid grid-cols-2 gap-3 flex-1">
                 {/* Lunch Counter */}
                 <div className="p-2.5 rounded-xl bg-[#F6F8F5] border border-slate-200/80 flex flex-col items-center">
                   <span className="text-[11px] font-semibold text-slate-600 whitespace-nowrap">
@@ -299,7 +288,7 @@ export function MealsTab({
                     <button
                       type="button"
                       disabled={!canEdit}
-                      onClick={() => adjust(0, l - 1, d, g)}
+                      onClick={() => adjust(0, l - 1, d)}
                       aria-label={`Decrease lunch for ${member.name}`}
                       className="w-9 h-9 sm:w-8 sm:h-8 rounded-lg bg-white border border-slate-200 flex items-center justify-center text-[#173125] active:scale-95 hover:bg-slate-100 disabled:opacity-40 transition-transform touch-manipulation"
                     >
@@ -311,7 +300,7 @@ export function MealsTab({
                     <button
                       type="button"
                       disabled={!canEdit}
-                      onClick={() => adjust(0, l + 1, d, g)}
+                      onClick={() => adjust(0, l + 1, d)}
                       aria-label={`Increase lunch for ${member.name}`}
                       className="w-9 h-9 sm:w-8 sm:h-8 rounded-lg bg-[#173125] text-[#FED24F] flex items-center justify-center active:scale-95 hover:bg-[#438A53] disabled:opacity-40 transition-transform touch-manipulation"
                     >
@@ -329,7 +318,7 @@ export function MealsTab({
                     <button
                       type="button"
                       disabled={!canEdit}
-                      onClick={() => adjust(0, l, d - 1, g)}
+                      onClick={() => adjust(0, l, d - 1)}
                       aria-label={`Decrease dinner for ${member.name}`}
                       className="w-9 h-9 sm:w-8 sm:h-8 rounded-lg bg-white border border-slate-200 flex items-center justify-center text-[#173125] active:scale-95 hover:bg-slate-100 disabled:opacity-40 transition-transform touch-manipulation"
                     >
@@ -341,7 +330,7 @@ export function MealsTab({
                     <button
                       type="button"
                       disabled={!canEdit}
-                      onClick={() => adjust(0, l, d + 1, g)}
+                      onClick={() => adjust(0, l, d + 1)}
                       aria-label={`Increase dinner for ${member.name}`}
                       className="w-9 h-9 sm:w-8 sm:h-8 rounded-lg bg-[#173125] text-[#FED24F] flex items-center justify-center active:scale-95 hover:bg-[#438A53] disabled:opacity-40 transition-transform touch-manipulation"
                     >
@@ -349,49 +338,10 @@ export function MealsTab({
                     </button>
                   </div>
                 </div>
-
-                {/* Guest Meal Counter */}
-                <div className="p-2.5 col-span-2 md:col-span-1 rounded-xl bg-[#F6F8F5] border border-slate-200/80 flex flex-col items-center">
-                  <span className="text-[11px] font-semibold text-[#438A53] whitespace-nowrap">
-                    {lang === 'bn' ? 'গেস্ট (Guest)' : 'Guest Meal'}
-                  </span>
-                  <div className="flex items-center gap-2 mt-1.5">
-                    <button
-                      type="button"
-                      disabled={!canEdit}
-                      onClick={() => adjust(0, l, d, g - 1)}
-                      aria-label={`Decrease guest meal for ${member.name}`}
-                      className="w-9 h-9 sm:w-8 sm:h-8 rounded-lg bg-white border border-slate-200 flex items-center justify-center text-[#173125] active:scale-95 hover:bg-slate-100 disabled:opacity-40 transition-transform touch-manipulation"
-                    >
-                      <Minus className="w-4 h-4 sm:w-3.5 sm:h-3.5" />
-                    </button>
-                    <span className="w-9 text-center font-numeric font-bold text-sm text-[#438A53]">
-                      {Math.round(g)}
-                    </span>
-                    <button
-                      type="button"
-                      disabled={!canEdit}
-                      onClick={() => adjust(0, l, d, g + 1)}
-                      aria-label={`Increase guest meal for ${member.name}`}
-                      className="w-9 h-9 sm:w-8 sm:h-8 rounded-lg bg-[#438A53] text-white flex items-center justify-center active:scale-95 hover:bg-[#173125] disabled:opacity-40 transition-transform touch-manipulation"
-                    >
-                      <Plus className="w-4 h-4 sm:w-3.5 sm:h-3.5" />
-                    </button>
-                  </div>
-                </div>
               </div>
 
-              {/* Guest / Meal Note Input */}
-              <div className="lg:w-48">
-                <input
-                  type="text"
-                  disabled={!canEdit}
-                  value={notes}
-                  onChange={(e) => adjust(b, l, d, g, e.target.value)}
-                  placeholder={lang === 'bn' ? 'গেস্ট / মিল নোট...' : 'Guest or meal note...'}
-                  className="w-full px-3 py-3 rounded-xl border border-slate-200 text-xs text-[#173125] bg-[#F6F8F5] focus:bg-white"
-                />
-              </div>
+              {/* Meal Note Input */}
+          
             </div>
           );
         })}

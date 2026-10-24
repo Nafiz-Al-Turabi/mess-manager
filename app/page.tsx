@@ -461,14 +461,14 @@ export default function MessManagerApp() {
     }
 
     const mem = members.find((m) => m.id === memberId);
-    const total = Math.round(lunch + dinner + guestMeal);
+    const total = Math.round(lunch + dinner);
     triggerToast(
       lang === 'bn'
         ? `${mem ? mem.name : 'মেম্বার'}-এর মিল আপডেট হয়েছে (${total} মিল)`
         : `Meal updated for ${mem ? mem.name : 'Member'} (${total} meals)`,
       lang === 'bn'
-        ? `তারিখ: ${date} · দুপুর: ${lunch}, রাত: ${dinner}, গেস্ট: ${guestMeal}`
-        : `Date: ${date} · Lunch:${lunch} Dinner:${dinner} Guest:${guestMeal}`,
+        ? `তারিখ: ${date} · দুপুর: ${lunch}, রাত: ${dinner}`
+        : `Date: ${date} · Lunch:${lunch} Dinner:${dinner}`,
       'success'
     );
   };
