@@ -144,13 +144,13 @@ export function MealsTab({
               <button
                 type="button"
                 onClick={() => onQuickFillAllActive(selectedDate, 0, 1, 1)}
-                className="min-h-[40px] px-3.5 py-2 rounded-xl bg-[#438A53] hover:bg-[#173125] text-white text-xs font-semibold flex items-center gap-1.5 whitespace-nowrap transition-colors"
+                className="min-h-[40px] px-3.5 py-2 rounded-xl bg-[#173125] hover:bg-[#173125]/90 text-white text-xs font-semibold flex items-center gap-1.5 whitespace-nowrap transition-colors"
               >
-                <CheckCheck className="w-4 h-4 text-[#FED24F]" />
+                {/* <CheckCheck className="w-4 h-4 text-[#FED24F]" /> */}
                 <span>
                   {lang === 'bn'
-                    ? '১-ক্লিকে সবার ফুল মিল (১ দুপুর + ১ রাত)'
-                    : '1-Click Fill All (1 Lunch + 1 Dinner)'}
+                    ? 'সবার ফুল মিল (১ দুপুর + ১ রাত)'
+                    : 'Fill All (1 Lunch + 1 Dinner)'}
                 </span>
               </button>
 
