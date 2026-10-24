@@ -85,7 +85,30 @@ export default function MessManagerApp() {
   const [lang, setLang] = useState<Language>('en');
   const [activeTab, setActiveTab] = useState<
     'home' | 'meals' | 'expenses' | 'deposits' | 'reports'
-  >('home');
+  >(() => {
+    if (typeof window !== 'undefined') {
+      const savedTab = localStorage.getItem('mess_active_tab');
+      if (
+        savedTab === 'home' ||
+        savedTab === 'meals' ||
+        savedTab === 'expenses' ||
+        savedTab === 'deposits' ||
+        savedTab === 'reports'
+      ) {
+        return savedTab;
+      }
+    }
+    return 'home';
+  });
+
+  const handleSelectTab = (
+    tab: 'home' | 'meals' | 'expenses' | 'deposits' | 'reports'
+  ) => {
+    setActiveTab(tab);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('mess_active_tab', tab);
+    }
+  };
 
   // Action Feedback Toast & Confirm Modal State
   const [toast, setToast] = useState<ToastMessage | null>(null);
@@ -1063,7 +1086,7 @@ export default function MessManagerApp() {
           onOpenUserManagement={() => setShowUserManagementModal(true)}
           onSignOut={handleSignOut}
           activeTab={activeTab}
-          onSelectTab={setActiveTab}
+          onSelectTab={handleSelectTab}
         />
       )}
 
@@ -1131,11 +1154,11 @@ export default function MessManagerApp() {
             onRejectJoinRequest={handleRejectJoinRequest}
             onSimulateJoinRequest={handleSimulateJoinRequest}
             activityLogs={activityLogs}
-            onNavigateTab={setActiveTab}
+            onNavigateTab={handleSelectTab}
             onDownloadMonthlyPdf={handleDownloadMonthlyPdf}
             onInspectMemberStatement={(summary) => {
               setStatementMemberSummary(summary);
-              setActiveTab('reports');
+              handleSelectTab('reports');
             }}
           />
         )}
@@ -1229,7 +1252,7 @@ export default function MessManagerApp() {
         >
           <button
             type="button"
-            onClick={() => setActiveTab('home')}
+            onClick={() => handleSelectTab('home')}
             className={`flex flex-col items-center justify-center min-h-[48px] py-1 transition-all ${
               activeTab === 'home'
                 ? 'text-[#FED24F] font-bold scale-105'
@@ -1248,7 +1271,7 @@ export default function MessManagerApp() {
 
           <button
             type="button"
-            onClick={() => setActiveTab('meals')}
+            onClick={() => handleSelectTab('meals')}
             className={`flex flex-col items-center justify-center min-h-[48px] py-1 transition-all ${
               activeTab === 'meals'
                 ? 'text-[#FED24F] font-bold scale-105'
@@ -1267,7 +1290,7 @@ export default function MessManagerApp() {
 
           <button
             type="button"
-            onClick={() => setActiveTab('expenses')}
+            onClick={() => handleSelectTab('expenses')}
             className={`flex flex-col items-center justify-center min-h-[48px] py-1 transition-all ${
               activeTab === 'expenses'
                 ? 'text-[#FED24F] font-bold scale-105'
@@ -1286,7 +1309,7 @@ export default function MessManagerApp() {
 
           <button
             type="button"
-            onClick={() => setActiveTab('deposits')}
+            onClick={() => handleSelectTab('deposits')}
             className={`flex flex-col items-center justify-center min-h-[48px] py-1 transition-all ${
               activeTab === 'deposits'
                 ? 'text-[#FED24F] font-bold scale-105'
@@ -1305,7 +1328,7 @@ export default function MessManagerApp() {
 
           <button
             type="button"
-            onClick={() => setActiveTab('reports')}
+            onClick={() => handleSelectTab('reports')}
             className={`flex flex-col items-center justify-center min-h-[48px] py-1 transition-all ${
               activeTab === 'reports'
                 ? 'text-[#FED24F] font-bold scale-105'
