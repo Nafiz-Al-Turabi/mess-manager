@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import React from 'react';
+import React from "react";
 import {
   Calendar,
   CheckCheck,
@@ -10,10 +10,10 @@ import {
   RotateCcw,
   Unlock,
   Utensils,
-} from 'lucide-react';
-import { Language, MealRecord, Member } from '@/lib/types';
-import { formatNumber } from '@/lib/i18n';
-import { AppUser } from '@/lib/mongo-client';
+} from "lucide-react";
+import { Language, MealRecord, Member } from "@/lib/types";
+import { formatNumber } from "@/lib/i18n";
+import { AppUser } from "@/lib/mongo-client";
 
 interface MealsTabProps {
   lang: Language;
@@ -33,13 +33,13 @@ interface MealsTabProps {
     lunch: number,
     dinner: number,
     guestMeal: number,
-    notes: string
+    notes: string,
   ) => void;
   onQuickFillAllActive: (
     date: string,
     breakfastWeight: number,
     lunch: number,
-    dinner: number
+    dinner: number,
   ) => void;
 }
 
@@ -76,15 +76,15 @@ export function MealsTab({
             <h1 className="text-lg sm:text-xl font-bold text-[#173125] flex items-center gap-2">
               <Utensils className="w-5 h-5 text-[#438A53]" />
               <span>
-                {lang === 'bn'
-                  ? 'প্রতিদিনের মিল শীট ও এন্ট্রি (Daily Meals)'
-                  : 'Daily Meal Sheet & Counter'}
+                {lang === "bn"
+                  ? "প্রতিদিনের মিল শীট ও এন্ট্রি (Daily Meals)"
+                  : "Daily Meal Sheet & Counter"}
               </span>
             </h1>
             <p className="text-xs text-slate-500 mt-0.5">
-              {lang === 'bn'
-                ? 'তারিখ নির্বাচন করে দুপুর ও রাত মিল প্লাস/মাইনাস বাটনে এন্ট্রি করুন'
-                : 'Select date and adjust per-member lunch and dinner counts'}
+              {lang === "bn"
+                ? "তারিখ নির্বাচন করে দুপুর ও রাত মিল প্লাস/মাইনাস বাটনে এন্ট্রি করুন"
+                : "Select date and adjust per-member lunch and dinner counts"}
             </p>
           </div>
 
@@ -92,8 +92,11 @@ export function MealsTab({
           <div className="flex flex-wrap items-center gap-2.5">
             <div className="flex items-center gap-2 bg-[#F6F8F5] px-3 py-1.5 rounded-xl border border-slate-200">
               <Calendar className="w-4 h-4 text-[#438A53]" />
-              <label htmlFor="meal-date-picker" className="text-xs font-semibold text-slate-600">
-                {lang === 'bn' ? 'তারিখ:' : 'Date:'}
+              <label
+                htmlFor="meal-date-picker"
+                className="text-xs font-semibold text-slate-600"
+              >
+                {lang === "bn" ? "তারিখ:" : "Date:"}
               </label>
               <input
                 id="meal-date-picker"
@@ -112,19 +115,27 @@ export function MealsTab({
                 onClick={() => onToggleDateLock(selectedDate)}
                 className={`min-h-[40px] px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 whitespace-nowrap transition-colors ${
                   isSelectedDateLocked
-                    ? 'bg-amber-50 text-amber-800 border border-amber-300'
-                    : 'bg-[#F6F8F5] text-[#173125] hover:bg-slate-200/70 border border-slate-200'
+                    ? "bg-amber-50 text-amber-800 border border-amber-300"
+                    : "bg-[#F6F8F5] text-[#173125] hover:bg-slate-200/70 border border-slate-200"
                 }`}
               >
                 {isSelectedDateLocked ? (
                   <>
                     <Lock className="w-3.5 h-3.5 text-amber-700" />
-                    <span>{lang === 'bn' ? 'তারিখ লক করা (আনলক)' : 'Date Locked (Unlock)'}</span>
+                    <span>
+                      {lang === "bn"
+                        ? "তারিখ লক করা (আনলক)"
+                        : "Date Locked (Unlock)"}
+                    </span>
                   </>
                 ) : (
                   <>
                     <Unlock className="w-3.5 h-3.5 text-[#438A53]" />
-                    <span>{lang === 'bn' ? 'তারিখ খোলা (লক করুন)' : 'Lock This Date'}</span>
+                    <span>
+                      {lang === "bn"
+                        ? "তারিখ খোলা (লক করুন)"
+                        : "Lock This Date"}
+                    </span>
                   </>
                 )}
               </button>
@@ -136,9 +147,9 @@ export function MealsTab({
         {canEdit && (
           <div className="mt-4 pt-4 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3">
             <span className="text-xs text-slate-500">
-              {lang === 'bn'
-                ? 'এক ক্লিকে সকল সক্রিয় মেম্বারদের মিল এন্ট্রি করুন:'
-                : 'Quick bulk actions for all active members:'}
+              {lang === "bn"
+                ? "এক ক্লিকে সকল সক্রিয় মেম্বারদের মিল এন্ট্রি করুন:"
+                : "Quick bulk actions for all active members:"}
             </span>
             <div className="flex flex-wrap items-center gap-2">
               <button
@@ -148,9 +159,9 @@ export function MealsTab({
               >
                 {/* <CheckCheck className="w-4 h-4 text-[#FED24F]" /> */}
                 <span>
-                  {lang === 'bn'
-                    ? 'সবার ফুল মিল (১ দুপুর + ১ রাত)'
-                    : 'Fill All (1 Lunch + 1 Dinner)'}
+                  {lang === "bn"
+                    ? "সবার ফুল মিল (১ দুপুর + ১ রাত)"
+                    : "Fill All (1 Lunch + 1 Dinner)"}
                 </span>
               </button>
 
@@ -160,7 +171,7 @@ export function MealsTab({
                 className="min-h-[40px] px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold flex items-center gap-1.5 whitespace-nowrap transition-colors"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
-                <span>{lang === 'bn' ? 'রিসেট (সব ০)' : 'Reset Day (0)'}</span>
+                <span>{lang === "bn" ? "রিসেট (সব ০)" : "Reset Day (0)"}</span>
               </button>
             </div>
           </div>
@@ -170,7 +181,7 @@ export function MealsTab({
         <div className="grid grid-cols-3 gap-3 mt-4 pt-4 border-t border-slate-100">
           <div className="p-3 rounded-xl bg-[#F6F8F5]">
             <p className="text-xs text-slate-500 font-extrabold">
-              {lang === 'bn' ? 'দুপুর (Lunch)' : 'Lunch Total'}
+              {lang === "bn" ? "দুপুর (Lunch)" : "Lunch Total"}
             </p>
             <p className="text-base font-bold font-numeric text-[#173125] mt-0.5">
               {formatNumber(dayTotalLunch, lang, 0)}
@@ -178,7 +189,7 @@ export function MealsTab({
           </div>
           <div className="p-3 rounded-xl bg-[#F6F8F5]">
             <p className="text-xs text-slate-500 font-extrabold">
-              {lang === 'bn' ? 'রাত (Dinner)' : 'Dinner Total'}
+              {lang === "bn" ? "রাত (Dinner)" : "Dinner Total"}
             </p>
             <p className="text-base font-bold font-numeric text-[#173125] mt-0.5">
               {formatNumber(dayTotalDinner, lang, 0)}
@@ -186,7 +197,7 @@ export function MealsTab({
           </div>
           <div className="p-3 rounded-xl bg-[#173125] text-white">
             <p className="text-xs text-white/75 font-extrabold">
-              {lang === 'bn' ? 'দিনের মোট মিল' : 'Day Total Meals'}
+              {lang === "bn" ? "দিনের মোট মিল" : "Day Total Meals"}
             </p>
             <p className="text-lg font-bold font-numeric text-[#FED24F] mt-0.5">
               {formatNumber(dayGrandTotal, lang, 0)}
@@ -200,7 +211,7 @@ export function MealsTab({
             <div className="flex items-center gap-2.5 text-xs text-amber-900 font-semibold">
               <Lock className="w-4 h-4 text-amber-700 shrink-0" />
               <span>
-                {lang === 'bn'
+                {lang === "bn"
                   ? `সতর্কবার্তা: ${selectedDate} তারিখের মিল শীট বর্তমানে লক করা আছে। লক থাকা অবস্থায় মিল সংখ্যা পরিবর্তন করা যাবে না।`
                   : `Notice: Meal entries for ${selectedDate} are currently locked. Unlock the date to modify meal counts.`}
               </span>
@@ -213,7 +224,7 @@ export function MealsTab({
               >
                 <Unlock className="w-3.5 h-3.5" />
                 <span>
-                  {lang === 'bn' ? 'এখনই আনলক করুন' : 'Unlock Date Now'}
+                  {lang === "bn" ? "এখনই আনলক করুন" : "Unlock Date Now"}
                 </span>
               </button>
             )}
@@ -228,7 +239,7 @@ export function MealsTab({
           const b = rec ? rec.breakfast : 0;
           const l = rec ? rec.lunch : 0;
           const d = rec ? rec.dinner : 0;
-          const notes = rec ? rec.notes : '';
+          const notes = rec ? rec.notes : "";
           const total = l + d;
 
           const adjust = (
@@ -236,7 +247,7 @@ export function MealsTab({
             nextL: number,
             nextD: number,
             nextG = 0,
-            nextNotes = notes
+            nextNotes = notes,
           ) => {
             if (!canEdit) return;
             onUpsertMeal(
@@ -246,7 +257,7 @@ export function MealsTab({
               Math.max(0, Number(nextL.toFixed(1))),
               Math.max(0, Number(nextD.toFixed(1))),
               0,
-              nextNotes
+              nextNotes,
             );
           };
 
@@ -267,13 +278,13 @@ export function MealsTab({
                   </span>
                 </div>
                 <div className="flex items-center gap-2 mt-1">
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-numeric font-bold bg-[#438A53]/10 text-[#2C3E35] border border-[#438A53]/20">
+                  {/* <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-numeric font-bold bg-[#438A53]/10 text-[#2C3E35] border border-[#438A53]/20">
                     <span>{lang === 'bn' ? 'আজকের মিল:' : 'Meals:'}</span>
                     <span className="text-sm text-[#438A53]">{formatNumber(total, lang, 0)}</span>
-                  </span>
-                  {rec?.recordedBy === 'SELF' && (
+                  </span> */}
+                  {rec?.recordedBy === "SELF" && (
                     <span className="text-[11px] text-slate-500 font-normal">
-                      · {lang === 'bn' ? 'সেলফ এন্ট্রি' : 'Self'}
+                      · {lang === "bn" ? "সেলফ এন্ট্রি" : "Self"}
                     </span>
                   )}
                 </div>
@@ -284,7 +295,7 @@ export function MealsTab({
                 {/* Lunch Counter */}
                 <div className="p-2.5 rounded-xl bg-[#F6F8F5] border border-slate-200/80 flex flex-col items-center">
                   <span className="text-[11px] font-semibold text-slate-600 whitespace-nowrap">
-                    {lang === 'bn' ? 'দুপুর (Lunch)' : 'Lunch'}
+                    {lang === "bn" ? "দুপুর (Lunch)" : "Lunch"}
                   </span>
                   <div className="flex items-center gap-2 mt-1.5">
                     <button
@@ -314,7 +325,7 @@ export function MealsTab({
                 {/* Dinner Counter */}
                 <div className="p-2.5 rounded-xl bg-[#F6F8F5] border border-slate-200/80 flex flex-col items-center">
                   <span className="text-[11px] font-semibold text-slate-600 whitespace-nowrap">
-                    {lang === 'bn' ? 'রাত (Dinner)' : 'Dinner'}
+                    {lang === "bn" ? "রাত (Dinner)" : "Dinner"}
                   </span>
                   <div className="flex items-center gap-2 mt-1.5">
                     <button
@@ -345,13 +356,12 @@ export function MealsTab({
               {/* Day Total Badge on the side */}
               <div className="flex lg:flex-col items-center justify-center px-4 py-2 rounded-xl bg-[#F6F8F5] border border-slate-200 min-w-[100px] text-center">
                 <span className="text-[11px] font-semibold text-slate-500 block">
-                  {lang === 'bn' ? 'মোট মিল' : 'Day Total'}
+                  {lang === "bn" ? "মোট মিল" : "Day Total"}
                 </span>
                 <span className="text-xl font-bold font-numeric text-[#2C3E35] lg:mt-0.5 ml-2 lg:ml-0">
                   {formatNumber(total, lang, 0)}
                 </span>
               </div>
-          
             </div>
           );
         })}
