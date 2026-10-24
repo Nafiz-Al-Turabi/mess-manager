@@ -169,7 +169,7 @@ export function MealsTab({
         {/* Selected Date Summary Strip */}
         <div className="grid grid-cols-3 gap-3 mt-4 pt-4 border-t border-slate-100">
           <div className="p-3 rounded-xl bg-[#F6F8F5]">
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-slate-500 font-extrabold">
               {lang === 'bn' ? 'দুপুর (Lunch)' : 'Lunch Total'}
             </p>
             <p className="text-base font-bold font-numeric text-[#173125] mt-0.5">
@@ -177,7 +177,7 @@ export function MealsTab({
             </p>
           </div>
           <div className="p-3 rounded-xl bg-[#F6F8F5]">
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-slate-500 font-extrabold">
               {lang === 'bn' ? 'রাত (Dinner)' : 'Dinner Total'}
             </p>
             <p className="text-base font-bold font-numeric text-[#173125] mt-0.5">
@@ -185,7 +185,7 @@ export function MealsTab({
             </p>
           </div>
           <div className="p-3 rounded-xl bg-[#173125] text-white">
-            <p className="text-xs text-white/75">
+            <p className="text-xs text-white/75 font-extrabold">
               {lang === 'bn' ? 'দিনের মোট মিল' : 'Day Total Meals'}
             </p>
             <p className="text-lg font-bold font-numeric text-[#FED24F] mt-0.5">
