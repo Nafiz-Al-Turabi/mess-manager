@@ -266,15 +266,17 @@ export function MealsTab({
                     {member.roomNumber}
                   </span>
                 </div>
-                <p className="text-xs text-[#438A53] font-numeric font-semibold mt-0.5">
-                  {lang === 'bn' ? 'আজকের মোট মিল:' : "Today's Total:"}{' '}
-                  {formatNumber(total, lang, 1)}
+                <div className="flex items-center gap-2 mt-1">
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-numeric font-bold bg-[#438A53]/10 text-[#2C3E35] border border-[#438A53]/20">
+                    <span>{lang === 'bn' ? 'আজকের মিল:' : 'Meals:'}</span>
+                    <span className="text-sm text-[#438A53]">{formatNumber(total, lang, 0)}</span>
+                  </span>
                   {rec?.recordedBy === 'SELF' && (
-                    <span className="text-slate-500 font-normal ml-2">
-                      · {lang === 'bn' ? 'মেম্বার নিজে এন্ট্রি করেছেন' : 'Self-recorded'}
+                    <span className="text-[11px] text-slate-500 font-normal">
+                      · {lang === 'bn' ? 'সেলফ এন্ট্রি' : 'Self'}
                     </span>
                   )}
-                </p>
+                </div>
               </div>
 
               {/* 2 Meal Counters: Lunch, Dinner */}
@@ -340,7 +342,15 @@ export function MealsTab({
                 </div>
               </div>
 
-              {/* Meal Note Input */}
+              {/* Day Total Badge on the side */}
+              <div className="flex lg:flex-col items-center justify-center px-4 py-2 rounded-xl bg-[#F6F8F5] border border-slate-200 min-w-[100px] text-center">
+                <span className="text-[11px] font-semibold text-slate-500 block">
+                  {lang === 'bn' ? 'মোট মিল' : 'Day Total'}
+                </span>
+                <span className="text-xl font-bold font-numeric text-[#2C3E35] lg:mt-0.5 ml-2 lg:ml-0">
+                  {formatNumber(total, lang, 0)}
+                </span>
+              </div>
           
             </div>
           );
