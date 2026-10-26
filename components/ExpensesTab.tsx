@@ -64,7 +64,7 @@ export function ExpensesTab({
   const [title, setTitle] = useState('');
   const [category, setCategory] = useState<ExpenseCategory>('Bazar (Food)');
   const [amount, setAmount] = useState('');
-  const [paidByMemberId, setPaidByMemberId] = useState<number>(members[0]?.id || 1);
+  const [paidByMemberId, setPaidByMemberId] = useState<number>(0);
   const [description, setDescription] = useState('');
   const [formError, setFormError] = useState('');
 
@@ -102,7 +102,7 @@ export function ExpensesTab({
     setTitle('');
     setCategory('Bazar (Food)');
     setAmount('');
-    setPaidByMemberId(members[0]?.id || 1);
+    setPaidByMemberId(0);
     setDescription('');
     setFormError('');
     setShowModal(true);
@@ -114,7 +114,7 @@ export function ExpensesTab({
     setTitle(exp.title);
     setCategory(exp.category);
     setAmount(String(exp.amount));
-    setPaidByMemberId(exp.paidByMemberId);
+    setPaidByMemberId(exp.isFoodExpense ? 0 : exp.paidByMemberId);
     setDescription(exp.description);
     setFormError('');
     setShowModal(true);
@@ -131,8 +131,15 @@ export function ExpensesTab({
       setFormError(lang === 'bn' ? 'সঠিক টাকার পরিমাণ দিন' : 'Please enter a valid positive amount');
       return;
     }
-    const payer = members.find((m) => m.id === paidByMemberId);
     const isFoodExpense = category === 'Bazar (Food)';
+    const payer = !isFoodExpense && paidByMemberId > 0 ? members.find((m) => m.id === paidByMemberId) : null;
+    const finalPaidByMemberId = isFoodExpense ? 0 : paidByMemberId;
+    const finalPaidByName = isFoodExpense
+      ? (lang === 'bn' ? 'মেস ডিপোজিট ফান্ড' : 'Mess Deposit Fund')
+      : payer
+        ? payer.name
+        : (lang === 'bn' ? 'মেস ডিপোজিট ফান্ড' : 'Mess Deposit Fund');
+
 
     onSaveExpense(
       {
@@ -140,8 +147,8 @@ export function ExpensesTab({
         title: title.trim(),
         category,
         amount: numAmount,
-        paidByMemberId,
-        paidByName: payer ? payer.name : 'Manager',
+        paidByMemberId: finalPaidByMemberId,
+        paidByName: finalPaidByName,
         description: description.trim(),
         isFoodExpense,
       },
@@ -166,8 +173,8 @@ export function ExpensesTab({
             </h1>
             <p className="text-xs text-slate-500 mt-0.5">
               {lang === 'bn'
-                ? 'বাজার খরচ মিল রেটে যুক্ত হয় · শেয়ার্ড বিল সক্রিয় মেম্বারদের মাঝে সমান ভাগ হয় · যিনি টাকা দিয়েছেন তার জমায় স্বয়ংক্রিয়ভাবে যুক্ত হবে'
-                : 'Food Bazar enters Meal Rate · Shared Bills split equally · Out-of-pocket payer automatically receives credit'}
+                ? 'বাজার খরচ মেস ডিপোজিট ফান্ড থেকে কাটা হয় ও মিল রেটে যুক্ত হয় · শেয়ার্ড বিল সক্রিয় মেম্বারদের মাঝে সমান ভাগ হয়'
+                : 'Food Bazar is paid from mess deposits & enters Meal Rate · Shared Bills split equally'}
             </p>
           </div>
 
@@ -321,8 +328,28 @@ export function ExpensesTab({
                 </h2>
 
                 <p className="text-xs text-slate-500 mt-0.5">
-                  {lang === 'bn' ? 'টাকা দিয়েছেন (Credited Payer):' : 'Paid Out-of-Pocket by:'}{' '}
-                  <span className="font-semibold text-[#173125]">{exp.paidByName}</span>
+                  {exp.isFoodExpense ? (
+                    <>
+                      <span>{lang === 'bn' ? 'পরিশোধ:' : 'Paid From:'} </span>
+                      <span className="font-semibold text-[#173125]">
+                        {lang === 'bn' ? 'মেস ডিপোজিট ফান্ড' : 'Mess Deposit Fund'}
+                      </span>
+                    </>
+                  ) : exp.paidByMemberId > 0 ? (
+                    <>
+                      <span>{lang === 'bn' ? 'নিজ খরচে দিয়েছেন:' : 'Paid Out-of-Pocket by:'} </span>
+                      <span className="font-semibold text-[#173125]">{exp.paidByName}</span>
+    
+                    </>
+                  ) : (
+                    <>
+                      <span>{lang === 'bn' ? 'পরিশোধ:' : 'Paid From:'} </span>
+                      <span className="font-semibold text-[#173125]">
+                        {lang === 'bn' ? 'মেস ডিপোজিট ফান্ড' : 'Mess Deposit Fund'}
+                      </span>
+                    </>
+                  )}
+
                   {exp.description ? ` · ${exp.description}` : ''}
                 </p>
               </div>
@@ -447,22 +474,41 @@ export function ExpensesTab({
                     className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm font-numeric font-bold"
                   />
                 </div>
-                <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1">
-                    {lang === 'bn' ? 'কে টাকা দিয়েছেন? (Payer) *' : 'Paid By Member *'}
-                  </label>
-                  <select
-                    value={paidByMemberId}
-                    onChange={(e) => setPaidByMemberId(Number(e.target.value))}
-                    className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs font-semibold"
-                  >
-                    {members.map((m) => (
-                      <option key={m.id} value={m.id}>
-                        {m.name}
+                {category === 'Bazar (Food)' ? (
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-600 mb-1">
+                      {lang === 'bn' ? 'পরিশোধের উৎস' : 'Payment Source'}
+                    </label>
+                    <div className="w-full px-3 py-2 rounded-lg border border-emerald-200 bg-emerald-50/70 text-xs font-semibold text-[#173125] flex items-center gap-1.5 h-[38px]">
+                      <span className="w-2 h-2 rounded-full bg-[#438A53]"></span>
+                      <span>
+                        {lang === 'bn'
+                          ? '🏛️ মেস ডিপোজিট ফান্ড (সরাসরি কর্তন)'
+                          : '🏛️ Mess Deposit Fund (Direct)'}
+                      </span>
+                    </div>
+                  </div>
+                ) : (
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-600 mb-1">
+                      {lang === 'bn' ? 'কে টাকা দিয়েছেন? (Payer) *' : 'Paid By Member / Fund *'}
+                    </label>
+                    <select
+                      value={paidByMemberId}
+                      onChange={(e) => setPaidByMemberId(Number(e.target.value))}
+                      className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs font-semibold"
+                    >
+                      <option value={0}>
+                        {lang === 'bn' ? '🏛️ মেস ডিপোজিট ফান্ড' : '🏛️ Mess Deposit Fund'}
                       </option>
-                    ))}
-                  </select>
-                </div>
+                      {members.map((m) => (
+                        <option key={m.id} value={m.id}>
+                          👤 {m.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
               </div>
 
               <div>
@@ -485,11 +531,15 @@ export function ExpensesTab({
               <p className="text-[11px] text-[#438A53] bg-[#F6F8F5] p-2.5 rounded-lg">
                 {category === 'Bazar (Food)'
                   ? lang === 'bn'
-                    ? '✓ এটি "বাজার খরচ" হিসেবে মিল রেটে যুক্ত হবে এবং বাজারকারীর একাউন্টে ক্রেডিট হবে।'
-                    : '✓ This counts as Food Bazar in Meal Rate and credits the payer account.'
-                  : lang === 'bn'
-                    ? '✓ এটি "শেয়ার্ড বিল" হিসেবে সব সক্রিয় মেম্বারের মাঝে সমান ভাগ হবে।'
-                    : '✓ This counts as a Shared Bill split equally among active members.'}
+                    ? '✓ এটি "বাজার খরচ" হিসেবে সরাসরি মেস ডিপোজিট ফান্ড থেকে কর্তন হবে এবং মিল রেটে যুক্ত হবে (কোনো মেম্বারের ব্যক্তিগত জমায় যোগ হবে না)।'
+                    : '✓ This Food Bazar expense is deducted directly from the Mess Deposit fund and enters the Meal Rate (not credited to any member).'
+                  : paidByMemberId > 0
+                    ? lang === 'bn'
+                      ? '✓ এটি শেয়ার্ড বিল হিসেবে সবার মাঝে সমান ভাগ হবে এবং যিনি নিজ পকেট থেকে দিয়েছেন তার জমায় ক্রেডিট হবে।'
+                      : '✓ This Shared Bill splits equally and credits the member who paid out-of-pocket.'
+                    : lang === 'bn'
+                      ? '✓ এটি মেস ডিপোজিট ফান্ড থেকে পরিশোধিত শেয়ার্ড বিল হিসেবে গণ্য হবে (কারো ব্যক্তিগত জমায় যোগ হবে না)।'
+                      : '✓ This Shared Bill is paid directly from the Mess Deposit fund.'}
               </p>
             </div>
 

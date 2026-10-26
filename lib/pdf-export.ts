@@ -134,7 +134,7 @@ export function generateMonthlyMessPdf(params: {
   doc.setFontSize(8);
   doc.setTextColor(90, 105, 95);
   doc.text(
-    'Formula: Total Cost = (Member Meals x Meal Rate) + Shared Cost. Net Balance = (Cash Deposits + Paid Bazar/Bills) - Total Cost.',
+    'Formula: Total Cost = (Member Meals x Meal Rate) + Shared Cost. Net Balance = (Cash Deposits + Paid Bills) - Total Cost.',
     14,
     y
   );
@@ -199,7 +199,7 @@ export function generateMemberStatementPdf(params: {
 
   y += 35;
   doc.setFontSize(11);
-  doc.text(`Deposits (${memberDeposits.length}) & Out-of-Pocket Expenses Paid (${memberPaidExpenses.length})`, 14, y);
+  doc.text(`Deposits (${memberDeposits.length}) & Paid Shared Bills (${memberPaidExpenses.length})`, 14, y);
   y += 6;
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(9);
@@ -215,7 +215,7 @@ export function generateMemberStatementPdf(params: {
 
   memberPaidExpenses.forEach((e) => {
     doc.text(
-      `[Paid Expense] ${e.date} - BDT ${e.amount} for ${asciiSafeText(e.title)} (${e.category})`,
+      `[Paid Bill] ${e.date} - BDT ${e.amount} for ${asciiSafeText(e.title)} (${e.category})`,
       16,
       y
     );
