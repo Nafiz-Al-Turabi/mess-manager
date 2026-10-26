@@ -597,8 +597,8 @@ export function HomeTab({
                     <div className="flex justify-between">
                       <span>
                         {lang === "bn"
-                          ? "নিজের পকেট থেকে বাজার খরচ:"
-                          : "Bazar Paid from Pocket:"}
+                          ? "নিজ পকেট থেকে পরিশোধিত বিল:"
+                          : "Bills Paid from Pocket:"}
                       </span>
                       <span className="font-numeric font-semibold text-emerald-600">
                         {formatCurrency(mySummary?.paidExpenseCredit ?? 0, lang)}
@@ -945,7 +945,7 @@ export function HomeTab({
               </h2>
               <p className="text-xs text-slate-500 mt-0.5">
                 {lang === "bn"
-                  ? "নেট ব্যালেন্স = মোট জমা (নগদ + নিজের পকেট থেকে বাজার) − মোট খরচ (মিল + শেয়ার্ড)"
+                  ? "নেট ব্যালেন্স = মোট জমা (নগদ + পরিশোধিত শেয়ার্ড বিল) − মোট খরচ (মিল + শেয়ার্ড)"
                   : "Net Balance = Total Credit (Deposits + Out-of-Pocket Paid) − Total Cost"}
               </p>
             </div>
