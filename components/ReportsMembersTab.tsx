@@ -245,7 +245,7 @@ export function ReportsMembersTab({
                   {lang === 'bn' ? 'নগদ জমা' : 'Cash Deposit'}
                 </th>
                 <th className="py-3 px-2.5 text-right">
-                  {lang === 'bn' ? 'নিজ খরচে বাজার' : 'Paid Bazar'}
+                  {lang === 'bn' ? 'নিজ খরচে বিল' : 'Paid Bills'}
                 </th>
                 <th className="py-3 px-2.5 text-right">
                   {lang === 'bn' ? 'মোট জমা' : 'Total Credit'}
@@ -599,8 +599,8 @@ export function ReportsMembersTab({
             <div className="space-y-2">
               <h4 className="text-xs font-bold text-[#173125]">
                 {lang === 'bn'
-                  ? 'নগদ জমা এবং নিজ পকেট থেকে করা বাজারের তালিকা'
-                  : 'Recorded Cash Deposits & Out-of-Pocket Paid Expenses'}
+                  ? 'নগদ জমা এবং নিজ পকেট থেকে পরিশোধিত শেয়ার্ড বিল'
+                  : 'Recorded Cash Deposits & Paid Shared Bills'}
               </h4>
               <div className="divide-y divide-slate-100 border border-slate-100 rounded-xl px-3">
                 {deposits
@@ -629,6 +629,7 @@ export function ReportsMembersTab({
                   .filter(
                     (e) =>
                       e.date.startsWith(monthKey) &&
+                      !e.isFoodExpense &&
                       e.paidByMemberId === statementMemberSummary.member.id
                   )
                   .map((e) => (
@@ -640,7 +641,7 @@ export function ReportsMembersTab({
                         <span className="font-numeric text-[#173125] font-semibold">
                           {e.date}
                         </span>{' '}
-                        · [Paid Expense] {e.title}
+                        · [{lang === 'bn' ? 'পরিশোধিত বিল' : 'Paid Bill'}] {e.title}
                       </span>
                       <span className="font-numeric font-bold text-[#438A53]">
                         +{formatCurrency(e.amount, lang, 0)}
@@ -677,7 +678,9 @@ export function ReportsMembersTab({
                       ),
                       memberPaidExpenses: expenses.filter(
                         (e) =>
-                          e.date.startsWith(monthKey) && e.paidByMemberId === memberId
+                          e.date.startsWith(monthKey) &&
+                          !e.isFoodExpense &&
+                          e.paidByMemberId === memberId
                       ),
                     });
                     onDownloadStatementPdf?.(statementMemberSummary.member.name);
