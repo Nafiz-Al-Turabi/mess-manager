@@ -40,3 +40,232 @@
     display: none !important;
   }
 }
+
+/* =========================================================================
+   DYNAMIC SITE THEME SYSTEM (ADMIN CUSTOMIZATION)
+   Enables live theme color switching without breaking Tailwind utilities
+   ========================================================================= */
+
+html[data-custom-theme="true"] {
+  background-color: var(--theme-bg, #F6F8F5) !important;
+}
+
+html[data-custom-theme="true"] body {
+  background-color: var(--theme-bg, #F6F8F5) !important;
+}
+
+/* Primary Dark Overrides (#173125) */
+html[data-custom-theme="true"] .bg-\[\#173125\],
+html[data-custom-theme="true"] [class*="bg-[#173125]"] {
+  background-color: var(--theme-primary, #173125) !important;
+}
+
+html[data-custom-theme="true"] .hover\:bg-\[\#173125\]:hover,
+html[data-custom-theme="true"] [class*="hover:bg-[#173125]"]:hover {
+  background-color: var(--theme-primary, #173125) !important;
+}
+
+html[data-custom-theme="true"] .bg-\[\#173125\]\/10,
+html[data-custom-theme="true"] [class*="bg-[#173125]/10"] {
+  background-color: color-mix(in srgb, var(--theme-primary, #173125) 10%, transparent) !important;
+}
+
+html[data-custom-theme="true"] .bg-\[\#173125\]\/95,
+html[data-custom-theme="true"] [class*="bg-[#173125]/95"] {
+  background-color: color-mix(in srgb, var(--theme-primary, #173125) 95%, transparent) !important;
+}
+
+html[data-custom-theme="true"] .bg-\[\#204232\],
+html[data-custom-theme="true"] .hover\:bg-\[\#204232\]:hover {
+  background-color: color-mix(in srgb, var(--theme-primary, #173125) 85%, white) !important;
+}
+
+html[data-custom-theme="true"] .text-\[\#173125\],
+html[data-custom-theme="true"] [class*="text-[#173125]"] {
+  color: var(--theme-primary, #173125) !important;
+}
+
+html[data-custom-theme="true"] .border-\[\#173125\],
+html[data-custom-theme="true"] [class*="border-[#173125]"] {
+  border-color: var(--theme-primary, #173125) !important;
+}
+
+html[data-custom-theme="true"] .border-\[\#173125\]\/10,
+html[data-custom-theme="true"] [class*="border-[#173125]/10"] {
+  border-color: color-mix(in srgb, var(--theme-primary, #173125) 10%, transparent) !important;
+}
+
+html[data-custom-theme="true"] .border-\[\#173125\]\/15,
+html[data-custom-theme="true"] [class*="border-[#173125]/15"] {
+  border-color: color-mix(in srgb, var(--theme-primary, #173125) 15%, transparent) !important;
+}
+
+html[data-custom-theme="true"] .border-\[\#173125\]\/20,
+html[data-custom-theme="true"] [class*="border-[#173125]/20"] {
+  border-color: color-mix(in srgb, var(--theme-primary, #173125) 20%, transparent) !important;
+}
+
+html[data-custom-theme="true"] .border-\[\#173125\]\/30,
+html[data-custom-theme="true"] [class*="border-[#173125]/30"] {
+  border-color: color-mix(in srgb, var(--theme-primary, #173125) 30%, transparent) !important;
+}
+
+html[data-custom-theme="true"] .border-\[\#173125\]\/40,
+html[data-custom-theme="true"] [class*="border-[#173125]/40"] {
+  border-color: color-mix(in srgb, var(--theme-primary, #173125) 40%, transparent) !important;
+}
+
+/* Sub-Dark Overrides (#12271D) */
+html[data-custom-theme="true"] .bg-\[\#12271D\],
+html[data-custom-theme="true"] [class*="bg-[#12271D]"] {
+  background-color: var(--theme-sub-dark, #12271D) !important;
+}
+
+/* Accent Overrides (#438A53) */
+html[data-custom-theme="true"] .bg-\[\#438A53\],
+html[data-custom-theme="true"] [class*="bg-[#438A53]"] {
+  background-color: var(--theme-accent, #438A53) !important;
+}
+
+html[data-custom-theme="true"] .hover\:bg-\[\#438A53\]:hover,
+html[data-custom-theme="true"] [class*="hover:bg-[#438A53]"]:hover {
+  background-color: var(--theme-accent, #438A53) !important;
+}
+
+html[data-custom-theme="true"] .hover\:bg-\[\#438A53\]\/10:hover,
+html[data-custom-theme="true"] [class*="hover:bg-[#438A53]/10"]:hover {
+  background-color: color-mix(in srgb, var(--theme-accent, #438A53) 10%, transparent) !important;
+}
+
+html[data-custom-theme="true"] .hover\:bg-\[\#438A53\]\/90:hover,
+html[data-custom-theme="true"] [class*="hover:bg-[#438A53]/90"]:hover {
+  background-color: color-mix(in srgb, var(--theme-accent, #438A53) 90%, transparent) !important;
+}
+
+html[data-custom-theme="true"] .bg-\[\#438A53\]\/10,
+html[data-custom-theme="true"] [class*="bg-[#438A53]/10"] {
+  background-color: color-mix(in srgb, var(--theme-accent, #438A53) 10%, transparent) !important;
+}
+
+html[data-custom-theme="true"] .bg-\[\#438A53\]\/15,
+html[data-custom-theme="true"] [class*="bg-[#438A53]/15"] {
+  background-color: color-mix(in srgb, var(--theme-accent, #438A53) 15%, transparent) !important;
+}
+
+html[data-custom-theme="true"] .bg-\[\#438A53\]\/20,
+html[data-custom-theme="true"] [class*="bg-[#438A53]/20"] {
+  background-color: color-mix(in srgb, var(--theme-accent, #438A53) 20%, transparent) !important;
+}
+
+html[data-custom-theme="true"] .bg-\[\#438A53\]\/30,
+html[data-custom-theme="true"] [class*="bg-[#438A53]/30"] {
+  background-color: color-mix(in srgb, var(--theme-accent, #438A53) 30%, transparent) !important;
+}
+
+html[data-custom-theme="true"] .bg-\[\#438A53\]\/40,
+html[data-custom-theme="true"] [class*="bg-[#438A53]/40"] {
+  background-color: color-mix(in srgb, var(--theme-accent, #438A53) 40%, transparent) !important;
+}
+
+html[data-custom-theme="true"] .border-\[\#438A53\],
+html[data-custom-theme="true"] [class*="border-[#438A53]"] {
+  border-color: var(--theme-accent, #438A53) !important;
+}
+
+html[data-custom-theme="true"] .border-\[\#438A53\]\/20,
+html[data-custom-theme="true"] [class*="border-[#438A53]/20"] {
+  border-color: color-mix(in srgb, var(--theme-accent, #438A53) 20%, transparent) !important;
+}
+
+html[data-custom-theme="true"] .border-\[\#438A53\]\/30,
+html[data-custom-theme="true"] [class*="border-[#438A53]/30"] {
+  border-color: color-mix(in srgb, var(--theme-accent, #438A53) 30%, transparent) !important;
+}
+
+html[data-custom-theme="true"] .border-\[\#438A53\]\/40,
+html[data-custom-theme="true"] [class*="border-[#438A53]/40"] {
+  border-color: color-mix(in srgb, var(--theme-accent, #438A53) 40%, transparent) !important;
+}
+
+html[data-custom-theme="true"] .text-\[\#438A53\],
+html[data-custom-theme="true"] [class*="text-[#438A53]"] {
+  color: var(--theme-accent, #438A53) !important;
+}
+
+/* Gold / Highlight Overrides (#FED24F) */
+html[data-custom-theme="true"] .bg-\[\#FED24F\],
+html[data-custom-theme="true"] [class*="bg-[#FED24F]"] {
+  background-color: var(--theme-gold, #FED24F) !important;
+}
+
+html[data-custom-theme="true"] .hover\:bg-\[\#FED24F\]\/90:hover,
+html[data-custom-theme="true"] [class*="hover:bg-[#FED24F]/90"]:hover {
+  background-color: color-mix(in srgb, var(--theme-gold, #FED24F) 90%, transparent) !important;
+}
+
+html[data-custom-theme="true"] .bg-\[\#FED24F\]\/15,
+html[data-custom-theme="true"] [class*="bg-[#FED24F]/15"] {
+  background-color: color-mix(in srgb, var(--theme-gold, #FED24F) 15%, transparent) !important;
+}
+
+html[data-custom-theme="true"] .bg-\[\#FED24F\]\/20,
+html[data-custom-theme="true"] [class*="bg-[#FED24F]/20"] {
+  background-color: color-mix(in srgb, var(--theme-gold, #FED24F) 20%, transparent) !important;
+}
+
+html[data-custom-theme="true"] .bg-\[\#FED24F\]\/30,
+html[data-custom-theme="true"] [class*="bg-[#FED24F]/30"] {
+  background-color: color-mix(in srgb, var(--theme-gold, #FED24F) 30%, transparent) !important;
+}
+
+html[data-custom-theme="true"] .border-\[\#FED24F\]\/30,
+html[data-custom-theme="true"] [class*="border-[#FED24F]/30"] {
+  border-color: color-mix(in srgb, var(--theme-gold, #FED24F) 30%, transparent) !important;
+}
+
+html[data-custom-theme="true"] .border-\[\#FED24F\]\/40,
+html[data-custom-theme="true"] [class*="border-[#FED24F]/40"] {
+  border-color: color-mix(in srgb, var(--theme-gold, #FED24F) 40%, transparent) !important;
+}
+
+html[data-custom-theme="true"] .border-\[\#FED24F\]\/50,
+html[data-custom-theme="true"] [class*="border-[#FED24F]/50"] {
+  border-color: color-mix(in srgb, var(--theme-gold, #FED24F) 50%, transparent) !important;
+}
+
+html[data-custom-theme="true"] .border-\[\#FED24F\]\/60,
+html[data-custom-theme="true"] [class*="border-[#FED24F]/60"] {
+  border-color: color-mix(in srgb, var(--theme-gold, #FED24F) 60%, transparent) !important;
+}
+
+html[data-custom-theme="true"] .text-\[\#FED24F\],
+html[data-custom-theme="true"] [class*="text-[#FED24F]"] {
+  color: var(--theme-gold, #FED24F) !important;
+}
+
+/* Lime Overrides (#7EC151 & #B2D959) */
+html[data-custom-theme="true"] .bg-\[\#7EC151\],
+html[data-custom-theme="true"] [class*="bg-[#7EC151]"] {
+  background-color: var(--theme-lime, #7EC151) !important;
+}
+
+html[data-custom-theme="true"] .text-\[\#7EC151\],
+html[data-custom-theme="true"] [class*="text-[#7EC151]"] {
+  color: var(--theme-lime, #7EC151) !important;
+}
+
+html[data-custom-theme="true"] .text-\[\#B2D959\],
+html[data-custom-theme="true"] [class*="text-[#B2D959]"] {
+  color: var(--theme-lime, #7EC151) !important;
+}
+
+html[data-custom-theme="true"] .border-\[\#B2D959\],
+html[data-custom-theme="true"] [class*="border-[#B2D959]"] {
+  border-color: var(--theme-lime, #7EC151) !important;
+}
+
+/* Background Overrides (#F6F8F5) */
+html[data-custom-theme="true"] .bg-\[\#F6F8F5\],
+html[data-custom-theme="true"] [class*="bg-[#F6F8F5]"] {
+  background-color: var(--theme-bg, #F6F8F5) !important;
+}

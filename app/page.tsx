@@ -62,6 +62,8 @@ import { ReportsMembersTab } from '@/components/ReportsMembersTab';
 import { MessSwitcherModal } from '@/components/MessSwitcherModal';
 import { MongoLoginModal } from '@/components/MongoLoginModal';
 import { UserManagementModal } from '@/components/UserManagementModal';
+import { ThemeSettingsModal } from '@/components/ThemeSettingsModal';
+import { applyTheme, loadStoredTheme, ThemeColors } from '@/lib/theme';
 import {
   AppUser,
   fetchCurrentUser,
@@ -152,6 +154,7 @@ export default function MessManagerApp() {
   const [authErrorCode, setAuthErrorCode] = useState<string | null>(null);
   const [showLoginModal, setShowLoginModal] = useState<boolean>(false);
   const [showUserManagementModal, setShowUserManagementModal] = useState<boolean>(false);
+  const [showThemeSettingsModal, setShowThemeSettingsModal] = useState<boolean>(false);
 
   // Selected Month & Date
   const currentMonthStr = useMemo(() => {
@@ -194,6 +197,12 @@ export default function MessManagerApp() {
   const [showMessSwitcher, setShowMessSwitcher] = useState(false);
   const [statementMemberSummary, setStatementMemberSummary] =
     useState<MemberAccountingSummary | null>(null);
+
+  // Initialize Site Theme from storage
+  useEffect(() => {
+    const stored = loadStoredTheme();
+    applyTheme(stored.colors);
+  }, []);
 
   // Check currently logged in user on initial load
   useEffect(() => {
@@ -1084,6 +1093,7 @@ export default function MessManagerApp() {
           currentUser={currentUser}
           onOpenLogin={() => setShowLoginModal(true)}
           onOpenUserManagement={() => setShowUserManagementModal(true)}
+          onOpenThemeSettings={() => setShowThemeSettingsModal(true)}
           onSignOut={handleSignOut}
           activeTab={activeTab}
           onSelectTab={handleSelectTab}
@@ -1440,6 +1450,24 @@ export default function MessManagerApp() {
         onClose={() => setShowUserManagementModal(false)}
         currentUser={currentUser}
         members={members}
+      />
+
+      {/* Site Theme & Colors Settings Modal (Admin Only) */}
+      <ThemeSettingsModal
+        lang={lang}
+        isOpen={showThemeSettingsModal}
+        onClose={() => setShowThemeSettingsModal(false)}
+        onThemeSaved={(presetId) => {
+          triggerToast(
+            lang === 'bn'
+              ? 'সাইট থিম কালার সফলভাবে পরিবর্তন ও সেভ হয়েছে!'
+              : 'Site theme colors updated & applied successfully!',
+            presetId === 'pine-forest'
+              ? 'Pine Forest (Default)'
+              : presetId,
+            'success'
+          );
+        }}
       />
 
       {/* Global Action Toast & Delete Confirmation Modal */}

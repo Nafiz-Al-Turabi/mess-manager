@@ -11,6 +11,7 @@ import {
   Lock,
   LogIn,
   LogOut,
+  Palette,
   ShieldAlert,
   ShieldCheck,
   Unlock,
@@ -38,6 +39,7 @@ interface HeaderBarProps {
   currentUser: AppUser | null;
   onOpenLogin: () => void;
   onOpenUserManagement: () => void;
+  onOpenThemeSettings?: () => void;
   onSignOut: () => void;
   activeTab: string;
   onSelectTab: (tab: 'home' | 'meals' | 'expenses' | 'deposits' | 'reports') => void;
@@ -59,6 +61,7 @@ export function HeaderBar({
   currentUser,
   onOpenLogin,
   onOpenUserManagement,
+  onOpenThemeSettings,
   onSignOut,
   activeTab,
   onSelectTab,
@@ -176,6 +179,19 @@ export function HeaderBar({
             <span>{lang === 'bn' ? 'EN' : 'বাং'}</span>
           </button>
 
+          {/* Admin Theme Settings Quick Button */}
+          {isAdmin && onOpenThemeSettings && (
+            <button
+              type="button"
+              onClick={onOpenThemeSettings}
+              title={lang === 'bn' ? 'সাইট থিম ও রঙ কাস্টমাইজ করুন' : 'Site Theme & Colors'}
+              className="min-h-[38px] sm:min-h-[40px] px-2.5 py-1.5 rounded-xl border border-white/20 hover:bg-white/10 text-xs font-semibold text-white flex items-center gap-1.5 whitespace-nowrap shrink-0 transition-colors cursor-pointer"
+            >
+              <Palette className="w-3.5 h-3.5 text-[#FED24F]" />
+              <span className="hidden sm:inline">{lang === 'bn' ? 'থিম' : 'Theme'}</span>
+            </button>
+          )}
+
           {/* User Profile & Actions Dropdown */}
           {currentUser ? (
             <div className="relative" ref={dropdownRef}>
@@ -254,6 +270,23 @@ export function HeaderBar({
                         <div>
                           <div className="font-medium text-white">{lang === 'bn' ? 'মেস কোড ও সেটিংস' : 'Mess Code Settings'}</div>
                           <div className="text-[10px] text-slate-400">{lang === 'bn' ? 'মেস পরিবর্তন অথবা পিন পরিবর্তন' : 'Change Mess or PIN'}</div>
+                        </div>
+                      </button>
+                    )}
+
+                    {isAdmin && onOpenThemeSettings && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowUserDropdown(false);
+                          onOpenThemeSettings();
+                        }}
+                        className="w-full text-left px-4 py-2 text-xs text-slate-200 hover:bg-slate-800 flex items-center gap-2.5 transition"
+                      >
+                        <Palette className="w-4 h-4 text-[#FED24F]" />
+                        <div>
+                          <div className="font-medium text-white">{lang === 'bn' ? 'সাইট থিম ও রঙ সেটিংস' : 'Theme & Color Settings'}</div>
+                          <div className="text-[10px] text-slate-400">{lang === 'bn' ? 'হেডার, হিরো কার্ড ও বাটনের রঙ পরিবর্তন' : 'Customize theme & colors'}</div>
                         </div>
                       </button>
                     )}
