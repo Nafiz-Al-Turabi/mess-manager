@@ -456,7 +456,9 @@ export function calculateMonthlyAccounting(params: {
     activeMemberCount > 0 ? totalSharedCost / activeMemberCount : 0;
 
   const totalCashDeposits = monthDeposits.reduce((sum, d) => sum + (d.amount || 0), 0);
-  const totalOutOfPocketExpenses = monthExpenses.reduce(
+  const totalOutOfPocketExpenses = monthExpenses
+    .filter((e) => !e.isFoodExpense && e.paidByMemberId > 0)
+    .reduce(
     (sum, e) => sum + (e.amount || 0),
     0
   );
@@ -479,7 +481,10 @@ export function calculateMonthlyAccounting(params: {
       .filter((d) => d.memberId === member.id)
       .reduce((s, d) => s + (d.amount || 0), 0);
 
+    // Bazar (Food) is paid strictly from the mess deposit pool and NEVER credited to any member.
+    // Only non-food shared bills paid out-of-pocket by a member can be credited.
     const paidExpenseCredit = monthExpenses
+      .filter((e) => !e.isFoodExpense)
       .filter((e) => e.paidByMemberId === member.id)
       .reduce((s, e) => s + (e.amount || 0), 0);
 
