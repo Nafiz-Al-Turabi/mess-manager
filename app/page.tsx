@@ -59,6 +59,13 @@ import { MealsTab } from '@/components/MealsTab';
 import { ExpensesTab } from '@/components/ExpensesTab';
 import { DepositsTab } from '@/components/DepositsTab';
 import { ReportsMembersTab } from '@/components/ReportsMembersTab';
+import {
+  HomeSkeleton,
+  MealsSkeleton,
+  ExpensesSkeleton,
+  DepositsSkeleton,
+  ReportsSkeleton,
+} from '@/components/skeletons';
 import { MessSwitcherModal } from '@/components/MessSwitcherModal';
 import { MongoLoginModal } from '@/components/MongoLoginModal';
 import { UserManagementModal } from '@/components/UserManagementModal';
@@ -149,6 +156,7 @@ export default function MessManagerApp() {
   // Auth & Role State
   const [currentUser, setCurrentUser] = useState<AppUser | null>(null);
   const [authChecked, setAuthChecked] = useState<boolean>(false);
+  const [isDataLoading, setIsDataLoading] = useState<boolean>(true);
   const [isManager, setIsManager] = useState<boolean>(true);
   const [authNotice, setAuthNotice] = useState<string | null>(null);
   const [authErrorCode, setAuthErrorCode] = useState<string | null>(null);
@@ -240,7 +248,10 @@ export default function MessManagerApp() {
   }, [currentUser, members]);
 
   // MongoDB Real-time Sync and Periodic Polling
-  const syncWithMongo = async () => {
+  const syncWithMongo = async (isInitial: boolean = false) => {
+    if (isInitial) {
+      setIsDataLoading(true);
+    }
     try {
       const data = await fetchMessDataFromMongo(messId);
       if (data.settings) {
@@ -290,14 +301,18 @@ export default function MessManagerApp() {
       setActivityLogs(nextLogs.sort((a, b) => b.id - a.id));
     } catch (e) {
       console.warn('Mongo fetch sync warning:', e);
+    } finally {
+      if (isInitial) {
+        setIsDataLoading(false);
+      }
     }
   };
 
   useEffect(() => {
-    syncWithMongo();
+    syncWithMongo(true);
     // Poll every 8 seconds for real-time collaboration across multiple users/devices
     const timer = setInterval(() => {
-      syncWithMongo();
+      syncWithMongo(false);
     }, 8000);
     return () => clearInterval(timer);
   }, [messId]);
@@ -1127,11 +1142,14 @@ export default function MessManagerApp() {
               Protected by JWT & MongoDB Atlas Encryption
             </p>
           </div>
-        ) : !authChecked ? (
-          <div className="flex flex-col items-center justify-center py-24 text-slate-400">
-            <div className="w-8 h-8 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin mb-3" />
-            <p className="text-xs">{lang === 'bn' ? 'লোড হচ্ছে...' : 'Loading Mess Manager...'}</p>
-          </div>
+        ) : !authChecked || isDataLoading ? (
+          <>
+            {activeTab === 'home' && <HomeSkeleton lang={lang} />}
+            {activeTab === 'meals' && <MealsSkeleton lang={lang} />}
+            {activeTab === 'expenses' && <ExpensesSkeleton lang={lang} />}
+            {activeTab === 'deposits' && <DepositsSkeleton lang={lang} />}
+            {activeTab === 'reports' && <ReportsSkeleton lang={lang} />}
+          </>
         ) : (
           <>
             {activeTab === 'home' && (
@@ -1435,6 +1453,7 @@ export default function MessManagerApp() {
           } else {
             setIsManager(false);
           }
+          syncWithMongo(true);
           triggerToast(
             lang === 'bn' ? `স্বাগতম, ${user.name}!` : `Welcome, ${user.name}!`,
             `Role: ${user.role}`,

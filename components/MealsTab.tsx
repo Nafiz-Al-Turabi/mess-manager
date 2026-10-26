@@ -14,8 +14,10 @@ import {
 import { Language, MealRecord, Member } from "@/lib/types";
 import { formatNumber } from "@/lib/i18n";
 import { AppUser } from "@/lib/mongo-client";
+import { MealsSkeleton } from "@/components/skeletons";
 
 interface MealsTabProps {
+  isLoading?: boolean;
   lang: Language;
   monthKey: string;
   selectedDate: string;
@@ -44,6 +46,7 @@ interface MealsTabProps {
 }
 
 export function MealsTab({
+  isLoading,
   lang,
   monthKey,
   selectedDate,
@@ -57,6 +60,10 @@ export function MealsTab({
   onUpsertMeal,
   onQuickFillAllActive,
 }: MealsTabProps) {
+  if (isLoading) {
+    return <MealsSkeleton lang={lang} />;
+  }
+
   const activeMembers = members.filter((m) => m.isActive);
   const dateMeals = meals.filter((m) => m.date === selectedDate);
 

@@ -43,8 +43,10 @@ import {
   translateNoticeCategory,
 } from "@/lib/i18n";
 import { buildDueReminderMessage } from "@/lib/accounting";
+import { HomeSkeleton } from "@/components/skeletons";
 
 interface HomeTabProps {
+  isLoading?: boolean;
   lang: Language;
   messId: string;
   messName: string;
@@ -87,6 +89,7 @@ interface HomeTabProps {
 }
 
 export function HomeTab({
+  isLoading,
   lang,
   messId,
   messName,
@@ -169,6 +172,10 @@ export function HomeTab({
     setCopiedMemberId(summary.member.id);
     setTimeout(() => setCopiedMemberId(null), 2000);
   };
+
+  if (isLoading) {
+    return <HomeSkeleton lang={lang} />;
+  }
 
   return (
     <div className="space-y-6">

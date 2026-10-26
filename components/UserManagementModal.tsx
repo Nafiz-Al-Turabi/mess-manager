@@ -22,6 +22,7 @@ import {
   AppUser,
 } from '@/lib/mongo-client';
 import { Member } from '@/lib/types';
+import { UsersSkeleton } from '@/components/skeletons';
 
 interface UserManagementModalProps {
   isOpen: boolean;
@@ -372,7 +373,12 @@ export function UserManagementModal({
         )}
 
         {/* User Table List */}
-        <div className="mt-5 overflow-x-auto">
+        {loading && users.length === 0 ? (
+          <div className="mt-5">
+            <UsersSkeleton count={4} />
+          </div>
+        ) : (
+          <div className="mt-5 overflow-x-auto">
           <table className="w-full text-left text-xs text-slate-300">
             <thead className="bg-slate-800/80 uppercase text-[11px] text-slate-400">
               <tr>
@@ -513,6 +519,7 @@ export function UserManagementModal({
             </tbody>
           </table>
         </div>
+        )}
       </div>
     </div>
   );

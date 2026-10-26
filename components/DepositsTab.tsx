@@ -17,8 +17,10 @@ import {
   formatCurrency,
   translatePaymentMethod,
 } from '@/lib/i18n';
+import { DepositsSkeleton } from '@/components/skeletons';
 
 interface DepositsTabProps {
+  isLoading?: boolean;
   lang: Language;
   monthKey: string;
   isManager: boolean;
@@ -38,6 +40,7 @@ const PAYMENT_METHODS: PaymentMethod[] = [
 ];
 
 export function DepositsTab({
+  isLoading,
   lang,
   monthKey,
   isManager,
@@ -59,6 +62,10 @@ export function DepositsTab({
   const [transactionRef, setTransactionRef] = useState('');
   const [description, setDescription] = useState('');
   const [formError, setFormError] = useState('');
+
+  if (isLoading) {
+    return <DepositsSkeleton lang={lang} />;
+  }
 
   const monthDeposits = deposits.filter((d) => d.date.startsWith(monthKey));
   const filteredDeposits =

@@ -33,8 +33,10 @@ import {
 } from '@/lib/i18n';
 import { generateMemberStatementPdf } from '@/lib/pdf-export';
 import { AppUser } from '@/lib/mongo-client';
+import { ReportsSkeleton } from '@/components/skeletons';
 
 interface ReportsMembersTabProps {
+  isLoading?: boolean;
   lang: Language;
   messId: string;
   messName: string;
@@ -58,6 +60,7 @@ interface ReportsMembersTabProps {
 }
 
 export function ReportsMembersTab({
+  isLoading,
   lang,
   messId,
   messName,
@@ -144,6 +147,10 @@ export function ReportsMembersTab({
     );
     setShowMemberModal(false);
   };
+
+  if (isLoading) {
+    return <ReportsSkeleton lang={lang} />;
+  }
 
   return (
     <div className="space-y-6">

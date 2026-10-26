@@ -18,8 +18,10 @@ import {
   formatCurrency,
   translateExpenseCategory,
 } from '@/lib/i18n';
+import { ExpensesSkeleton } from '@/components/skeletons';
 
 interface ExpensesTabProps {
+  isLoading?: boolean;
   lang: Language;
   monthKey: string;
   isManager: boolean;
@@ -42,6 +44,7 @@ const EXPENSE_CATEGORIES: ExpenseCategory[] = [
 ];
 
 export function ExpensesTab({
+  isLoading,
   lang,
   monthKey,
   isManager,
@@ -64,6 +67,10 @@ export function ExpensesTab({
   const [paidByMemberId, setPaidByMemberId] = useState<number>(members[0]?.id || 1);
   const [description, setDescription] = useState('');
   const [formError, setFormError] = useState('');
+
+  if (isLoading) {
+    return <ExpensesSkeleton lang={lang} />;
+  }
 
   const monthExpenses = expenses.filter((e) => e.date.startsWith(monthKey));
 
