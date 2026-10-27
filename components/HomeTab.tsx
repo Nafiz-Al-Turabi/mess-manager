@@ -958,7 +958,7 @@ export function HomeTab({
             </button>
           </div>
 
-          <div className="divide-y divide-slate-100 mt-4">
+          <div className="divide-y divide-slate-100 mt-4 space-y-1">
             {accounting.memberSummaries.map((ms) => {
               const isRefundable = ms.netBalance >= 0;
               return (
