@@ -7,6 +7,7 @@ import {
   Eye,
   FileSpreadsheet,
   Lock,
+  MessageCircle,
   Printer,
   Trash2,
   Unlock,
@@ -32,6 +33,7 @@ import {
   formatNumber,
 } from '@/lib/i18n';
 import { generateMemberStatementPdf } from '@/lib/pdf-export';
+import { buildDueReminderMessage } from '@/lib/accounting';
 import { AppUser } from '@/lib/mongo-client';
 import { ReportsSkeleton } from '@/components/skeletons';
 
@@ -651,7 +653,7 @@ export function ReportsMembersTab({
               </div>
             </div>
 
-            <div className="flex justify-end gap-2 pt-2">
+            <div className="flex flex-wrap justify-end gap-2 pt-2">
               <button
                 type="button"
                 onClick={() => onSelectStatementMember(null)}
@@ -659,6 +661,29 @@ export function ReportsMembersTab({
               >
                 {lang === 'bn' ? 'বন্ধ করুন' : 'Close'}
               </button>
+
+              {statementMemberSummary.member.phone && (
+                <a
+                  href={`https://wa.me/${
+                    statementMemberSummary.member.phone.replace(/[^0-9]/g, '').startsWith('88')
+                      ? statementMemberSummary.member.phone.replace(/[^0-9]/g, '')
+                      : `88${statementMemberSummary.member.phone.replace(/[^0-9]/g, '')}`
+                  }?text=${encodeURIComponent(
+                    buildDueReminderMessage(
+                      messName,
+                      formatMonthLabel(monthKey, 'bn'),
+                      statementMemberSummary,
+                      'bn'
+                    )
+                  )}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-4 py-2 rounded-lg bg-[#173125] hover:bg-[#438A53] text-[#FED24F] text-xs font-semibold flex items-center gap-1.5 transition-colors"
+                >
+                  <MessageCircle className="w-4 h-4 text-[#7EC151]" />
+                  <span>{lang === 'bn' ? 'হোয়াটসঅ্যাপে পাঠান' : 'Share on WhatsApp'}</span>
+                </a>
+              )}
               {(currentUser?.role === 'SUPER_ADMIN' || currentUser?.role === 'ADMIN') && (
                 <button
                   type="button"

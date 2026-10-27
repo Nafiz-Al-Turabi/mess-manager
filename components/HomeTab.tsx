@@ -166,8 +166,10 @@ export function HomeTab({
       ) || accounting.memberSummaries[0]
     : accounting.memberSummaries[0];
 
+  const bnMonthLabel = formatMonthLabel(monthKey, 'bn');
+
   const handleCopyReminder = (summary: MemberAccountingSummary) => {
-    const text = buildDueReminderMessage(messName, monthLabel, summary, lang);
+    const text = buildDueReminderMessage(messName, bnMonthLabel, summary, 'bn');
     navigator.clipboard?.writeText(text);
     setCopiedMemberId(summary.member.id);
     setTimeout(() => setCopiedMemberId(null), 2000);
@@ -749,9 +751,9 @@ export function HomeTab({
             {dueMembers.map((summary) => {
               const reminderText = buildDueReminderMessage(
                 messName,
-                monthLabel,
+                bnMonthLabel,
                 summary,
-                lang,
+                'bn',
               );
               const cleanPhone = summary.member.phone.replace(/[^0-9]/g, "");
               const bdPhone = cleanPhone.startsWith("88")

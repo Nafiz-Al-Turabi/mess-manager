@@ -16,6 +16,7 @@ import {
   RosterItem,
   RosterStatus,
 } from './types';
+import { toBanglaDigits } from './i18n';
 
 export const ADMIN_EMAIL = 'nafizalturabi18cse@gmail.com';
 export const DEFAULT_MESS_ID = '9D';
@@ -587,13 +588,41 @@ export function buildDueReminderMessage(
   messName: string,
   monthLabel: string,
   summary: MemberAccountingSummary,
-  lang: 'bn' | 'en'
+  _lang: 'bn' | 'en' = 'bn'
 ): string {
   const dueAmount = Math.abs(Math.round(summary.netBalance));
-  if (lang === 'bn') {
-    return `আসসালামু আলাইকুম ${summary.member.name}, "${messName}" মেসের ${monthLabel} মাসের হিসাব অনুযায়ী আপনার মোট মিল: ${summary.totalMeals.toFixed(1)}টি, মোট খরচ: ৳${Math.round(summary.totalCost)}, মোট জমা: ৳${Math.round(summary.totalCredit)}। আপনার বর্তমান বকেয়া (Due): ৳${dueAmount}। অনুগ্রহ করে দ্রুত পরিশোধ করার অনুরোধ করা হচ্ছে। ধন্যবাদ!`;
+  const isRefund = summary.netBalance >= 0;
+
+  const mealsStr = toBanglaDigits(summary.totalMeals.toFixed(1));
+  const mealCostStr = toBanglaDigits(Math.round(summary.mealCost));
+  const sharedCostStr = toBanglaDigits(Math.round(summary.sharedCost));
+  const totalCostStr = toBanglaDigits(Math.round(summary.totalCost));
+  const creditStr = toBanglaDigits(Math.round(summary.totalCredit));
+  const balanceStr = toBanglaDigits(dueAmount);
+
+  if (isRefund) {
+    return `আসসালামু আলাইকুম ${summary.member.name},
+"${messName}" মেসের ${monthLabel} মাসের হিসাব বিবরণী:
+• মোট মিল: ${mealsStr} টি
+• মিল খরচ: ৳${mealCostStr}
+• শেয়ার্ড বিল: ৳${sharedCostStr}
+• সর্বমোট খরচ: ৳${totalCostStr}
+• আপনার মোট জমা: ৳${creditStr}
+• মেস থেকে ফেরত পাবেন: ৳${balanceStr}
+
+ধন্যবাদ!`;
   }
-  return `Hello ${summary.member.name}, for "${messName}" (${monthLabel}), your total meals: ${summary.totalMeals.toFixed(1)}, total cost: BDT ${Math.round(summary.totalCost)}, total credit: BDT ${Math.round(summary.totalCredit)}. Current Due Balance: BDT ${dueAmount}. Please clear the due at your convenience. Thank you!`;
+
+  return `আসসালামু আলাইকুম ${summary.member.name},
+"${messName}" মেসের ${monthLabel} মাসের হিসাব বিবরণী:
+• মোট মিল: ${mealsStr} টি
+• মিল খরচ: ৳${mealCostStr}
+• শেয়ার্ড বিল: ৳${sharedCostStr}
+• সর্বমোট খরচ: ৳${totalCostStr}
+• আপনার মোট জমা: ৳${creditStr}
+👉 বর্তমান বকেয়া (Due): ৳${balanceStr}
+
+অনুগ্রহ করে বকেয়া টাকা দ্রুত পরিশোধ করার অনুরোধ করা হচ্ছে। ধন্যবাদ!`;
 }
 
 /**

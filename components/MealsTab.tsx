@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   Calendar,
   CheckCheck,
@@ -60,16 +60,78 @@ export function MealsTab({
   onUpsertMeal,
   onQuickFillAllActive,
 }: MealsTabProps) {
+  const activeMembers = members.filter((m) => m.isActive);
+  const dateMeals = meals.filter((m) => m.date === selectedDate);
+
+  // Local optimistic state for instant snappy UI responsiveness
+  const [localCounts, setLocalCounts] = useState<
+    Record<number, { lunch: number; dinner: number }>
+  >({});
+
+  // Reset local overrides when selectedDate changes
+  useEffect(() => {
+    setLocalCounts({});
+  }, [selectedDate]);
+
   if (isLoading) {
     return <MealsSkeleton lang={lang} />;
   }
 
-  const activeMembers = members.filter((m) => m.isActive);
-  const dateMeals = meals.filter((m) => m.date === selectedDate);
+  const getMemberCounts = (memberId: number, rec?: MealRecord) => {
+    const override = localCounts[memberId];
+    if (override !== undefined) {
+      return override;
+    }
+    return {
+      lunch: rec ? rec.lunch : 0,
+      dinner: rec ? rec.dinner : 0,
+    };
+  };
+
+  const handleAdjust = (
+    memberId: number,
+    field: "lunch" | "dinner",
+    delta: number,
+    rec?: MealRecord
+  ) => {
+    if (!canEdit) return;
+    const current = getMemberCounts(memberId, rec);
+    const currentVal = field === "lunch" ? current.lunch : current.dinner;
+    const nextVal = Math.max(0, currentVal + delta);
+    const nextL = field === "lunch" ? nextVal : current.lunch;
+    const nextD = field === "dinner" ? nextVal : current.dinner;
+
+    // Instant local UI state update (0ms instant response)
+    setLocalCounts((prev) => ({
+      ...prev,
+      [memberId]: { lunch: nextL, dinner: nextD },
+    }));
+
+    onUpsertMeal(
+      memberId,
+      selectedDate,
+      0,
+      nextL,
+      nextD,
+      0,
+      rec?.notes || ""
+    );
+  };
+
+  const handleQuickFill = (b: number, l: number, d: number) => {
+    setLocalCounts({});
+    onQuickFillAllActive(selectedDate, b, l, d);
+  };
 
   const dayTotalBreakfast = dateMeals.reduce((s, m) => s + m.breakfast, 0);
-  const dayTotalLunch = dateMeals.reduce((s, m) => s + m.lunch, 0);
-  const dayTotalDinner = dateMeals.reduce((s, m) => s + m.dinner, 0);
+  const dayTotalLunch = activeMembers.reduce((s, m) => {
+    const rec = dateMeals.find((r) => r.memberId === m.id);
+    return s + getMemberCounts(m.id, rec).lunch;
+  }, 0);
+  const dayTotalDinner = activeMembers.reduce((s, m) => {
+    const rec = dateMeals.find((r) => r.memberId === m.id);
+    return s + getMemberCounts(m.id, rec).dinner;
+  }, 0);
   const dayGrandTotal = dayTotalLunch + dayTotalDinner;
 
   const canEdit = isManager && !isSelectedDateLocked;
@@ -161,7 +223,7 @@ export function MealsTab({
             <div className="flex flex-wrap items-center gap-2">
               <button
                 type="button"
-                onClick={() => onQuickFillAllActive(selectedDate, 0, 1, 1)}
+                onClick={() => handleQuickFill(0, 1, 1)}
                 className="min-h-[40px] px-3.5 py-2 rounded-xl bg-[#173125] hover:bg-[#173125]/90 text-white text-xs font-semibold flex items-center gap-1.5 whitespace-nowrap transition-colors"
               >
                 {/* <CheckCheck className="w-4 h-4 text-[#FED24F]" /> */}
@@ -174,7 +236,7 @@ export function MealsTab({
 
               <button
                 type="button"
-                onClick={() => onQuickFillAllActive(selectedDate, 0, 0, 0)}
+                onClick={() => handleQuickFill(0, 0, 0)}
                 className="min-h-[40px] px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold flex items-center gap-1.5 whitespace-nowrap transition-colors"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
@@ -243,30 +305,10 @@ export function MealsTab({
       <section className="space-y-3">
         {activeMembers.map((member) => {
           const rec = dateMeals.find((m) => m.memberId === member.id);
-          const b = rec ? rec.breakfast : 0;
-          const l = rec ? rec.lunch : 0;
-          const d = rec ? rec.dinner : 0;
-          const notes = rec ? rec.notes : "";
+          const counts = getMemberCounts(member.id, rec);
+          const l = counts.lunch;
+          const d = counts.dinner;
           const total = l + d;
-
-          const adjust = (
-            nextB: number,
-            nextL: number,
-            nextD: number,
-            nextG = 0,
-            nextNotes = notes,
-          ) => {
-            if (!canEdit) return;
-            onUpsertMeal(
-              member.id,
-              selectedDate,
-              Math.max(0, Number(nextB.toFixed(1))),
-              Math.max(0, Number(nextL.toFixed(1))),
-              Math.max(0, Number(nextD.toFixed(1))),
-              0,
-              nextNotes,
-            );
-          };
 
           return (
             <div
@@ -285,10 +327,6 @@ export function MealsTab({
                   </span>
                 </div>
                 <div className="flex items-center gap-2 mt-1">
-                  {/* <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-numeric font-bold bg-[#438A53]/10 text-[#2C3E35] border border-[#438A53]/20">
-                    <span>{lang === 'bn' ? 'আজকের মিল:' : 'Meals:'}</span>
-                    <span className="text-sm text-[#438A53]">{formatNumber(total, lang, 0)}</span>
-                  </span> */}
                   {rec?.recordedBy === "SELF" && (
                     <span className="text-[11px] text-slate-500 font-normal">
                       · {lang === "bn" ? "সেলফ এন্ট্রি" : "Self"}
@@ -308,9 +346,9 @@ export function MealsTab({
                     <button
                       type="button"
                       disabled={!canEdit}
-                      onClick={() => adjust(0, l - 1, d)}
+                      onClick={() => handleAdjust(member.id, "lunch", -1, rec)}
                       aria-label={`Decrease lunch for ${member.name}`}
-                      className="w-9 h-9 sm:w-8 sm:h-8 rounded-lg bg-white border border-slate-200 flex items-center justify-center text-[#173125] active:scale-95 hover:bg-slate-100 disabled:opacity-40 transition-transform touch-manipulation"
+                      className="w-9 h-9 sm:w-8 sm:h-8 rounded-lg bg-white border border-slate-200 flex items-center justify-center text-[#173125] active:scale-95 hover:bg-slate-100 disabled:opacity-40 transition-transform touch-manipulation cursor-pointer"
                     >
                       <Minus className="w-4 h-4 sm:w-3.5 sm:h-3.5" />
                     </button>
@@ -320,9 +358,9 @@ export function MealsTab({
                     <button
                       type="button"
                       disabled={!canEdit}
-                      onClick={() => adjust(0, l + 1, d)}
+                      onClick={() => handleAdjust(member.id, "lunch", 1, rec)}
                       aria-label={`Increase lunch for ${member.name}`}
-                      className="w-9 h-9 sm:w-8 sm:h-8 rounded-lg bg-[#173125] text-[#FED24F] flex items-center justify-center active:scale-95 hover:bg-[#438A53] disabled:opacity-40 transition-transform touch-manipulation"
+                      className="w-9 h-9 sm:w-8 sm:h-8 rounded-lg bg-[#173125] text-[#FED24F] flex items-center justify-center active:scale-95 hover:bg-[#438A53] disabled:opacity-40 transition-transform touch-manipulation cursor-pointer"
                     >
                       <Plus className="w-4 h-4 sm:w-3.5 sm:h-3.5" />
                     </button>
@@ -338,9 +376,9 @@ export function MealsTab({
                     <button
                       type="button"
                       disabled={!canEdit}
-                      onClick={() => adjust(0, l, d - 1)}
+                      onClick={() => handleAdjust(member.id, "dinner", -1, rec)}
                       aria-label={`Decrease dinner for ${member.name}`}
-                      className="w-9 h-9 sm:w-8 sm:h-8 rounded-lg bg-white border border-slate-200 flex items-center justify-center text-[#173125] active:scale-95 hover:bg-slate-100 disabled:opacity-40 transition-transform touch-manipulation"
+                      className="w-9 h-9 sm:w-8 sm:h-8 rounded-lg bg-white border border-slate-200 flex items-center justify-center text-[#173125] active:scale-95 hover:bg-slate-100 disabled:opacity-40 transition-transform touch-manipulation cursor-pointer"
                     >
                       <Minus className="w-4 h-4 sm:w-3.5 sm:h-3.5" />
                     </button>
@@ -350,9 +388,9 @@ export function MealsTab({
                     <button
                       type="button"
                       disabled={!canEdit}
-                      onClick={() => adjust(0, l, d + 1)}
+                      onClick={() => handleAdjust(member.id, "dinner", 1, rec)}
                       aria-label={`Increase dinner for ${member.name}`}
-                      className="w-9 h-9 sm:w-8 sm:h-8 rounded-lg bg-[#173125] text-[#FED24F] flex items-center justify-center active:scale-95 hover:bg-[#438A53] disabled:opacity-40 transition-transform touch-manipulation"
+                      className="w-9 h-9 sm:w-8 sm:h-8 rounded-lg bg-[#173125] text-[#FED24F] flex items-center justify-center active:scale-95 hover:bg-[#438A53] disabled:opacity-40 transition-transform touch-manipulation cursor-pointer"
                     >
                       <Plus className="w-4 h-4 sm:w-3.5 sm:h-3.5" />
                     </button>

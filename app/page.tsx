@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   FileSpreadsheet,
   Home,
@@ -189,6 +189,11 @@ export default function MessManagerApp() {
   const [meals, setMeals] = useState<MealRecord[]>([]);
   const [expenses, setExpenses] = useState<ExpenseRecord[]>([]);
   const [deposits, setDeposits] = useState<DepositRecord[]>([]);
+
+  // Tracks meals updated locally in the last 15s to prevent background polling from reverting optimistic UI
+  const recentMealUpdatesRef = useRef<
+    Map<string, { meal: MealRecord; timestamp: number }>
+  >(new Map());
   const [notice, setNotice] = useState<NoticeItem>({
     id: 'notice_default',
     title: '',
@@ -293,7 +298,29 @@ export default function MessManagerApp() {
       }
 
       setMembers(nextMembers.sort((a, b) => a.id - b.id));
-      setMeals(nextMeals);
+
+      // Merge server meals with any meals updated locally in the last 15s to avoid rollback
+      setMeals(() => {
+        const now = Date.now();
+        const mergedMap = new Map<string, MealRecord>();
+
+        // 1. Seed with fresh server meals
+        nextMeals.forEach((m) => {
+          mergedMap.set(`${m.date}_${m.memberId}`, m);
+        });
+
+        // 2. Overlay recent local updates if updated within 15 seconds
+        recentMealUpdatesRef.current.forEach((info, key) => {
+          if (now - info.timestamp < 15000) {
+            mergedMap.set(key, info.meal);
+          } else {
+            recentMealUpdatesRef.current.delete(key);
+          }
+        });
+
+        return Array.from(mergedMap.values());
+      });
+
       setExpenses(nextExpenses.sort((a, b) => b.date.localeCompare(a.date)));
       setDeposits(nextDeposits.sort((a, b) => b.date.localeCompare(a.date)));
       if (nextNotice) setNotice(nextNotice);
@@ -474,22 +501,38 @@ export default function MessManagerApp() {
     notes: string,
     recordedBy: 'MANAGER' | 'SELF' = 'MANAGER'
   ) => {
-    const existing = meals.find(
-      (m) => m.date === date && m.memberId === memberId
-    );
-    const mealObj: MealRecord = {
-      id: existing ? existing.id : Date.now() + memberId,
-      date,
-      memberId,
-      breakfast,
-      lunch,
-      dinner,
-      guestMeal,
-      notes,
-      recordedBy,
-    };
+    const key = `${date}_${memberId}`;
+    const now = Date.now();
 
     setMeals((prev) => {
+      const existing = prev.find(
+        (m) => m.date === date && m.memberId === memberId
+      );
+      const mealObj: MealRecord = {
+        id: existing ? existing.id : now + memberId,
+        date,
+        memberId,
+        breakfast,
+        lunch,
+        dinner,
+        guestMeal,
+        notes,
+        recordedBy,
+      };
+
+      // 1. Immediately cache in recent updates map to protect from polling overwrites
+      recentMealUpdatesRef.current.set(key, {
+        meal: mealObj,
+        timestamp: now,
+      });
+
+      // 2. Send to MongoDB Atlas in background
+      if (currentUser) {
+        upsertMongoMessRecord(encodeMealToCloud(mealObj, getCloudMeta())).catch(
+          (err) => console.error('Failed to sync meal to cloud:', err)
+        );
+      }
+
       const idx = prev.findIndex(
         (m) => m.date === date && m.memberId === memberId
       );
@@ -501,23 +544,19 @@ export default function MessManagerApp() {
       return [...prev, mealObj];
     });
 
-    if (currentUser) {
-      upsertMongoMessRecord(encodeMealToCloud(mealObj, getCloudMeta())).catch(
-        () => {}
+    if (recordedBy === 'SELF') {
+      const mem = members.find((m) => m.id === memberId);
+      const total = Math.round(lunch + dinner);
+      triggerToast(
+        lang === 'bn'
+          ? `${mem ? mem.name : 'মেম্বার'}-এর মিল আপডেট হয়েছে (${total} মিল)`
+          : `Meal updated for ${mem ? mem.name : 'Member'} (${total} meals)`,
+        lang === 'bn'
+          ? `তারিখ: ${date} · দুপুর: ${lunch}, রাত: ${dinner}`
+          : `Date: ${date} · Lunch:${lunch} Dinner:${dinner}`,
+        'success'
       );
     }
-
-    const mem = members.find((m) => m.id === memberId);
-    const total = Math.round(lunch + dinner);
-    triggerToast(
-      lang === 'bn'
-        ? `${mem ? mem.name : 'মেম্বার'}-এর মিল আপডেট হয়েছে (${total} মিল)`
-        : `Meal updated for ${mem ? mem.name : 'Member'} (${total} meals)`,
-      lang === 'bn'
-        ? `তারিখ: ${date} · দুপুর: ${lunch}, রাত: ${dinner}`
-        : `Date: ${date} · Lunch:${lunch} Dinner:${dinner}`,
-      'success'
-    );
   };
 
   const handleQuickFillAllActive = (
@@ -527,36 +566,45 @@ export default function MessManagerApp() {
     dWeight: number
   ) => {
     const activeList = members.filter((m) => m.isActive);
-    const updatedMeals = [...meals];
     const meta = getCloudMeta();
+    const now = Date.now();
 
-    activeList.forEach((m, i) => {
-      const idx = updatedMeals.findIndex(
-        (rec) => rec.date === date && rec.memberId === m.id
-      );
-      const existing = idx >= 0 ? updatedMeals[idx] : null;
-      const mealObj: MealRecord = {
-        id: existing ? existing.id : Date.now() + i,
-        date,
-        memberId: m.id,
-        breakfast: bWeight,
-        lunch: lWeight,
-        dinner: dWeight,
-        guestMeal: existing ? existing.guestMeal : 0,
-        notes: existing ? existing.notes : '',
-        recordedBy: 'MANAGER',
-      };
-      if (idx >= 0) {
-        updatedMeals[idx] = mealObj;
-      } else {
-        updatedMeals.push(mealObj);
-      }
-      if (currentUser) {
-        upsertMongoMessRecord(encodeMealToCloud(mealObj, meta)).catch(() => {});
-      }
+    setMeals((prev) => {
+      const updatedMeals = [...prev];
+      activeList.forEach((m, i) => {
+        const idx = updatedMeals.findIndex(
+          (rec) => rec.date === date && rec.memberId === m.id
+        );
+        const existing = idx >= 0 ? updatedMeals[idx] : null;
+        const mealObj: MealRecord = {
+          id: existing ? existing.id : now + i,
+          date,
+          memberId: m.id,
+          breakfast: bWeight,
+          lunch: lWeight,
+          dinner: dWeight,
+          guestMeal: existing ? existing.guestMeal : 0,
+          notes: existing ? existing.notes : '',
+          recordedBy: 'MANAGER',
+        };
+        if (idx >= 0) {
+          updatedMeals[idx] = mealObj;
+        } else {
+          updatedMeals.push(mealObj);
+        }
+
+        recentMealUpdatesRef.current.set(`${date}_${m.id}`, {
+          meal: mealObj,
+          timestamp: now,
+        });
+
+        if (currentUser) {
+          upsertMongoMessRecord(encodeMealToCloud(mealObj, meta)).catch(() => {});
+        }
+      });
+      return updatedMeals;
     });
 
-    setMeals(updatedMeals);
     const isReset = bWeight === 0 && lWeight === 0 && dWeight === 0;
     appendActivityLog(
       isReset
