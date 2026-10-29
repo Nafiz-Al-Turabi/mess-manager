@@ -112,3 +112,90 @@ const MessSettingSchema = new Schema<IMessSetting>(
 export const MessSettingModel =
   mongoose.models.MessSetting || mongoose.model<IMessSetting>('MessSetting', MessSettingSchema);
 
+// Admin Personal Receivables & Payables Schema (ব্যক্তিগত পাওনা ও দেনা খাতা)
+export type ReceivableStatus = 'PENDING' | 'PARTIAL' | 'PAID';
+export type LedgerEntryType = 'RECEIVABLE' | 'PAYABLE'; // RECEIVABLE = আমি পাবো (পাওনা), PAYABLE = আমি দেবো (দেনা)
+
+export interface IPaymentInstallment {
+  _id?: string;
+  amount: number;
+  date: string;
+  notes?: string;
+  receivedBy?: string;
+  createdAt?: Date;
+}
+
+export interface IAdminReceivable extends Document {
+  messId: string;
+  type: LedgerEntryType;
+  debtorName: string;
+  debtorPhone?: string;
+  debtorRoom?: string;
+  memberId?: number;
+  title: string;
+  category: string;
+  totalAmount: number;
+  paidAmount: number;
+  remainingAmount: number;
+  status: ReceivableStatus;
+  issueDate: string;
+  dueDate?: string;
+  notes?: string;
+  installments: IPaymentInstallment[];
+  createdBy: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+const PaymentInstallmentSchema = new Schema<IPaymentInstallment>(
+  {
+    amount: { type: Number, required: true },
+    date: { type: String, required: true },
+    notes: { type: String, default: '' },
+    receivedBy: { type: String, default: '' },
+    createdAt: { type: Date, default: Date.now },
+  },
+  { _id: true }
+);
+
+const AdminReceivableSchema = new Schema<IAdminReceivable>(
+  {
+    messId: { type: String, required: true, index: true, uppercase: true },
+    type: {
+      type: String,
+      enum: ['RECEIVABLE', 'PAYABLE'],
+      default: 'RECEIVABLE',
+      index: true,
+    },
+    debtorName: { type: String, required: true, trim: true },
+    debtorPhone: { type: String, default: '', trim: true },
+    debtorRoom: { type: String, default: '', trim: true },
+    memberId: { type: Number },
+    title: { type: String, required: true, trim: true },
+    category: {
+      type: String,
+      default: 'PERSONAL_LOAN',
+    },
+    totalAmount: { type: Number, required: true, default: 0 },
+    paidAmount: { type: Number, default: 0 },
+    remainingAmount: { type: Number, default: 0 },
+    status: {
+      type: String,
+      enum: ['PENDING', 'PARTIAL', 'PAID'],
+      default: 'PENDING',
+      index: true,
+    },
+    issueDate: { type: String, required: true },
+    dueDate: { type: String, default: '' },
+    notes: { type: String, default: '' },
+    installments: [PaymentInstallmentSchema],
+    createdBy: { type: String, default: 'admin' },
+  },
+  { timestamps: true }
+);
+
+export const AdminReceivableModel =
+  mongoose.models.AdminReceivable ||
+  mongoose.model<IAdminReceivable>('AdminReceivable', AdminReceivableSchema);
+
+

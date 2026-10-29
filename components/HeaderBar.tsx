@@ -1,12 +1,14 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
+import Link from 'next/link';
 import {
   ChevronDown,
   ChevronLeft,
   ChevronRight,
   Database,
   Globe,
+  HandCoins,
   KeyRound,
   Lock,
   LogIn,
@@ -255,6 +257,27 @@ export function HeaderBar({
                           <div className="text-[10px] text-slate-400">{lang === 'bn' ? 'ইউজার তৈরি, পাসওয়ার্ড ও পারমিশন' : 'Add users, reset passwords'}</div>
                         </div>
                       </button>
+                    )}
+
+                    {isAdmin && (
+                      <Link
+                        href="/admin-ledger"
+                        onClick={() => setShowUserDropdown(false)}
+                        className="w-full text-left px-4 py-2 text-xs text-slate-200 hover:bg-slate-800 flex items-center gap-2.5 transition"
+                      >
+                        <HandCoins className="w-4 h-4 text-[#FED24F]" />
+                        <div>
+                          <div className="font-medium text-white flex items-center gap-1.5">
+                            <span>{lang === 'bn' ? 'ব্যক্তিগত পাওনা ও দেনা খাতা' : 'Admin Receivables & Payables'}</span>
+                            <span className="text-[9px] px-1.5 py-0.5 rounded bg-[#FED24F]/20 text-[#FED24F] font-bold border border-[#FED24F]/30">
+                              Page
+                            </span>
+                          </div>
+                          <div className="text-[10px] text-slate-400">
+                            {lang === 'bn' ? 'কার কাছে পাবেন ও কে পাবে তার আলাদা পেজ' : 'Track who owes admin & whom admin owes'}
+                          </div>
+                        </div>
+                      </Link>
                     )}
 
                     {isAdmin && (

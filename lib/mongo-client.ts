@@ -165,3 +165,104 @@ export async function upsertMongoSettings(settings: Partial<MessDirectoryDoc>): 
   }
 }
 
+// =========================================================================
+// ADMIN PERSONAL RECEIVABLES & PAYABLES API CLIENT (ব্যক্তিগত পাওনা ও দেনা খাতা)
+// =========================================================================
+
+export type LedgerEntryType = 'RECEIVABLE' | 'PAYABLE';
+
+export interface PaymentInstallment {
+  _id?: string;
+  amount: number;
+  date: string;
+  notes?: string;
+  receivedBy?: string;
+  createdAt?: string;
+}
+
+export interface AdminReceivableRecord {
+  _id: string;
+  messId: string;
+  type?: LedgerEntryType; // 'RECEIVABLE' = পাওনা (আমি পাবো), 'PAYABLE' = দেনা (আমি দেবো)
+  debtorName: string;
+  debtorPhone?: string;
+  debtorRoom?: string;
+  memberId?: number;
+  title: string;
+  category: string;
+  totalAmount: number;
+  paidAmount: number;
+  remainingAmount: number;
+  status: 'PENDING' | 'PARTIAL' | 'PAID';
+  issueDate: string;
+  dueDate?: string;
+  notes?: string;
+  installments: PaymentInstallment[];
+  createdBy: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export async function fetchAdminReceivables(messId: string): Promise<AdminReceivableRecord[]> {
+  const res = await fetch(`/api/receivables?messId=${encodeURIComponent(messId)}`, {
+    cache: 'no-store',
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Failed to fetch receivables');
+  return data.receivables || [];
+}
+
+export async function createAdminReceivable(payload: Partial<AdminReceivableRecord>): Promise<AdminReceivableRecord> {
+  const res = await fetch('/api/receivables', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: 'CREATE', ...payload }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Failed to create receivable');
+  return data.item;
+}
+
+export async function recordReceivablePayment(params: {
+  id: string;
+  amount: number;
+  date: string;
+  notes?: string;
+  messId?: string;
+}): Promise<AdminReceivableRecord> {
+  const res = await fetch('/api/receivables', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: 'PAYMENT', ...params }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Failed to record payment');
+  return data.item;
+}
+
+export async function updateAdminReceivable(
+  id: string,
+  payload: Partial<AdminReceivableRecord>
+): Promise<AdminReceivableRecord> {
+  const res = await fetch('/api/receivables', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: 'UPDATE', id, ...payload }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Failed to update receivable');
+  return data.item;
+}
+
+export async function deleteAdminReceivable(id: string, messId?: string): Promise<void> {
+  const res = await fetch(
+    `/api/receivables?id=${encodeURIComponent(id)}${messId ? `&messId=${encodeURIComponent(messId)}` : ''}`,
+    {
+      method: 'DELETE',
+    }
+  );
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Failed to delete receivable');
+}
+
+
