@@ -36,6 +36,7 @@ import { generateMemberStatementPdf } from '@/lib/pdf-export';
 import { buildDueReminderMessage } from '@/lib/accounting';
 import { AppUser } from '@/lib/mongo-client';
 import { ReportsSkeleton } from '@/components/skeletons';
+import { CustomSelect } from '@/components/CustomSelect';
 
 interface ReportsMembersTabProps {
   isLoading?: boolean;
@@ -806,19 +807,15 @@ export function ReportsMembersTab({
               </div>
 
               <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1">
-                    {lang === 'bn' ? 'ভূমিকা (Role)' : 'Role'}
-                  </label>
-                  <select
-                    value={role}
-                    onChange={(e) => setRole(e.target.value as MemberRole)}
-                    className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs font-semibold"
-                  >
-                    <option value="Member">Member (মেম্বার)</option>
-                    <option value="Manager">Manager (ম্যানেজার)</option>
-                  </select>
-                </div>
+                <CustomSelect
+                  label={lang === 'bn' ? 'ভূমিকা (Role)' : 'Role'}
+                  value={role}
+                  onChange={(e) => setRole(e.target.value as MemberRole)}
+                  options={[
+                    { value: 'Member', label: 'Member (মেম্বার)' },
+                    { value: 'Manager', label: 'Manager (ম্যানেজার)' },
+                  ]}
+                />
                 <div>
                   <label className="block text-xs font-semibold text-slate-600 mb-1">
                     {lang === 'bn' ? 'যোগদানের তারিখ' : 'Joining Date'}
