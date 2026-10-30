@@ -44,6 +44,7 @@ import {
 } from "@/lib/i18n";
 import { buildDueReminderMessage } from "@/lib/accounting";
 import { HomeSkeleton } from "@/components/skeletons";
+import { CustomSelect } from "@/components/CustomSelect";
 
 interface HomeTabProps {
   isLoading?: boolean;
@@ -1092,23 +1093,19 @@ export function HomeTab({
               {lang === "bn" ? "নোটিশ বোর্ড আপডেট করুন" : "Update Mess Notice"}
             </h3>
             <div className="space-y-3">
-              <div>
-                <label className="block text-xs font-semibold text-slate-600 mb-1">
-                  {lang === "bn" ? "ক্যাটাগরি" : "Category"}
-                </label>
-                <select
-                  value={noticeCategory}
-                  onChange={(e) =>
-                    setNoticeCategory(e.target.value as NoticeCategory)
-                  }
-                  className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm"
-                >
-                  <option value="URGENT">URGENT (জরুরি)</option>
-                  <option value="MEAL_OFF">MEAL_OFF (মিল বন্ধ)</option>
-                  <option value="BAZAR">BAZAR (বাজার সংক্রান্ত)</option>
-                  <option value="GENERAL">GENERAL (সাধারণ)</option>
-                </select>
-              </div>
+              <CustomSelect
+                label={lang === "bn" ? "ক্যাটাগরি" : "Category"}
+                value={noticeCategory}
+                onChange={(e) =>
+                  setNoticeCategory(e.target.value as NoticeCategory)
+                }
+                options={[
+                  { value: 'URGENT', label: 'URGENT (জরুরি)' },
+                  { value: 'MEAL_OFF', label: 'MEAL_OFF (মিল বন্ধ)' },
+                  { value: 'BAZAR', label: 'BAZAR (বাজার সংক্রান্ত)' },
+                  { value: 'GENERAL', label: 'GENERAL (সাধারণ)' },
+                ]}
+              />
               <div>
                 <label className="block text-xs font-semibold text-slate-600 mb-1">
                   {lang === "bn" ? "শিরোনাম" : "Notice Title"}
@@ -1188,22 +1185,15 @@ export function HomeTab({
                   className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm font-numeric"
                 />
               </div>
-              <div>
-                <label className="block text-xs font-semibold text-slate-600 mb-1">
-                  {lang === "bn" ? "দায়িত্বপ্রাপ্ত মেম্বার" : "Assigned Member"}
-                </label>
-                <select
-                  value={rosterMemberId}
-                  onChange={(e) => setRosterMemberId(Number(e.target.value))}
-                  className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm"
-                >
-                  {members.map((m) => (
-                    <option key={m.id} value={m.id}>
-                      {m.name} ({m.roomNumber})
-                    </option>
-                  ))}
-                </select>
-              </div>
+              <CustomSelect
+                label={lang === "bn" ? "দায়িত্বপ্রাপ্ত মেম্বার" : "Assigned Member"}
+                value={rosterMemberId}
+                onChange={(e) => setRosterMemberId(Number(e.target.value))}
+                options={members.map((m) => ({
+                  value: m.id,
+                  label: `${m.name} (${m.roomNumber})`,
+                }))}
+              />
               <div>
                 <label className="block text-xs font-semibold text-slate-600 mb-1">
                   {lang === "bn" ? "বাজারের ফর্দ বা নোট" : "Bazar Note"}

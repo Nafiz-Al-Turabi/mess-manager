@@ -18,6 +18,7 @@ import {
   translatePaymentMethod,
 } from '@/lib/i18n';
 import { DepositsSkeleton } from '@/components/skeletons';
+import { CustomSelect } from '@/components/CustomSelect';
 
 interface DepositsTabProps {
   isLoading?: boolean;
@@ -329,22 +330,16 @@ export function DepositsTab({
                     className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs font-numeric"
                   />
                 </div>
-                <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1">
-                    {lang === 'bn' ? 'মেম্বার নির্বাচন *' : 'Select Member *'}
-                  </label>
-                  <select
-                    value={memberId}
-                    onChange={(e) => setMemberId(Number(e.target.value))}
-                    className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs font-semibold"
-                  >
-                    {members.map((m) => (
-                      <option key={m.id} value={m.id}>
-                        {m.name} ({m.roomNumber})
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                <CustomSelect
+                  label={lang === 'bn' ? 'মেম্বার নির্বাচন' : 'Select Member'}
+                  required
+                  value={memberId}
+                  onChange={(e) => setMemberId(Number(e.target.value))}
+                  options={members.map((m) => ({
+                    value: m.id,
+                    label: `${m.name} (${m.roomNumber})`,
+                  }))}
+                />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
@@ -364,22 +359,18 @@ export function DepositsTab({
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1">
-                    {lang === 'bn' ? 'পেমেন্ট মাধ্যম *' : 'Payment Method *'}
-                  </label>
-                  <select
+                  <CustomSelect
+                    label={lang === 'bn' ? 'পেমেন্ট মাধ্যম' : 'Payment Method'}
+                    required
                     value={paymentMethod}
                     onChange={(e) =>
                       setPaymentMethod(e.target.value as PaymentMethod)
                     }
-                    className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs font-semibold"
-                  >
-                    {PAYMENT_METHODS.map((pm) => (
-                      <option key={pm} value={pm}>
-                        {translatePaymentMethod(pm, lang)}
-                      </option>
-                    ))}
-                  </select>
+                    options={PAYMENT_METHODS.map((pm) => ({
+                      value: pm,
+                      label: translatePaymentMethod(pm, lang),
+                    }))}
+                  />
                 </div>
               </div>
 
