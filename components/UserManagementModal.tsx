@@ -23,6 +23,7 @@ import {
 } from '@/lib/mongo-client';
 import { Member } from '@/lib/types';
 import { UsersSkeleton } from '@/components/skeletons';
+import { CustomSelect } from '@/components/CustomSelect';
 
 interface UserManagementModalProps {
   isOpen: boolean;
@@ -303,29 +304,25 @@ export function UserManagementModal({
                 />
               </div>
 
-              <div>
-                <label className="text-xs text-slate-400 block mb-1">
-                  {lang === 'bn' ? 'মেস মেম্বারের সাথে লিংক করুন (ঐচ্ছিক)' : 'Link to Mess Member (Optional)'}
-                </label>
-                <select
-                  value={selectedMemberId}
-                  onChange={(e) => {
-                    setSelectedMemberId(e.target.value);
-                    const selected = members.find((m) => m.id === Number(e.target.value));
-                    if (selected && !newName) setNewName(selected.name);
-                    if (selected && !newPhone) setNewPhone(selected.phone);
-                    if (selected && !newRoom) setNewRoom(selected.roomNumber);
-                  }}
-                  className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500"
-                >
-                  <option value="">{lang === 'bn' ? '-- মেম্বার সিলেক্ট করুন --' : '-- Select Member --'}</option>
-                  {members.map((m) => (
-                    <option key={m.id} value={m.id}>
-                      #{m.id} - {m.name} ({m.roomNumber || 'Room ?'})
-                    </option>
-                  ))}
-                </select>
-              </div>
+              <CustomSelect
+                variant="dark"
+                label={lang === 'bn' ? 'মেস মেম্বারের সাথে লিংক করুন (ঐচ্ছিক)' : 'Link to Mess Member (Optional)'}
+                value={selectedMemberId}
+                onChange={(e) => {
+                  setSelectedMemberId(e.target.value);
+                  const selected = members.find((m) => m.id === Number(e.target.value));
+                  if (selected && !newName) setNewName(selected.name);
+                  if (selected && !newPhone) setNewPhone(selected.phone);
+                  if (selected && !newRoom) setNewRoom(selected.roomNumber);
+                }}
+                options={[
+                  { value: '', label: lang === 'bn' ? '-- মেম্বার সিলেক্ট করুন --' : '-- Select Member --' },
+                  ...members.map((m) => ({
+                    value: m.id,
+                    label: `#${m.id} - ${m.name} (${m.roomNumber || 'Room ?'})`,
+                  })),
+                ]}
+              />
 
               <div>
                 <label className="text-xs text-slate-400 block mb-1">
@@ -340,24 +337,21 @@ export function UserManagementModal({
                 />
               </div>
 
-              <div>
-                <label className="text-xs text-slate-400 block mb-1">
-                  {lang === 'bn' ? 'রোল / পারমিশন' : 'Role / Permission'}
-                </label>
-                <select
-                  value={newRole}
-                  onChange={(e) => setNewRole(e.target.value as any)}
-                  className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500"
-                >
-                  <option value="MEMBER">{lang === 'bn' ? 'মেম্বার (General Member)' : 'General Member'}</option>
-                  {isSuperAdmin && (
-                    <option value="ADMIN">{lang === 'bn' ? 'এডমিন (Admin / Manager)' : 'Admin / Manager'}</option>
-                  )}
-                  {isSuperAdmin && (
-                    <option value="SUPER_ADMIN">Super Admin</option>
-                  )}
-                </select>
-              </div>
+              <CustomSelect
+                variant="dark"
+                label={lang === 'bn' ? 'রোল / পারমিশন' : 'Role / Permission'}
+                value={newRole}
+                onChange={(e) => setNewRole(e.target.value as any)}
+                options={[
+                  { value: 'MEMBER', label: lang === 'bn' ? 'মেম্বার (General Member)' : 'General Member' },
+                  ...(isSuperAdmin
+                    ? [
+                        { value: 'ADMIN', label: lang === 'bn' ? 'এডমিন (Admin / Manager)' : 'Admin / Manager' },
+                        { value: 'SUPER_ADMIN', label: 'Super Admin' },
+                      ]
+                    : []),
+                ]}
+              />
             </div>
 
             <div className="pt-2 flex justify-end">

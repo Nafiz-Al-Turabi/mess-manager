@@ -48,6 +48,7 @@ import {
 import { Member } from '@/lib/types';
 import { decodeMemberFromCloud } from '@/lib/accounting';
 import { formatCurrency, formatNumber, toBanglaDigits } from '@/lib/i18n';
+import { CustomSelect } from '@/components/CustomSelect';
 
 const CATEGORIES = [
   { id: 'PERSONAL_LOAN', labelBn: 'ব্যক্তিগত ধার / ঋণ', labelEn: 'Personal Loan' },
@@ -849,18 +850,19 @@ ${item.dueDate ? `• পরিশোধের শেষ তারিখ: ${toBa
                   )}
                 </div>
 
-                <select
+                <CustomSelect
                   value={categoryFilter}
                   onChange={(e) => setCategoryFilter(e.target.value)}
-                  className="h-8 px-2 text-xs rounded-lg border border-slate-200 bg-slate-50/50 text-slate-700 font-medium focus:outline-none shrink-0"
-                >
-                  <option value="ALL">{lang === 'bn' ? 'সব ক্যাটাগরি' : 'All Categories'}</option>
-                  {CATEGORIES.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {lang === 'bn' ? c.labelBn : c.labelEn}
-                    </option>
-                  ))}
-                </select>
+                  sizeVariant="sm"
+                  containerClassName="shrink-0 w-auto min-w-[130px] sm:min-w-[150px]"
+                  options={[
+                    { value: 'ALL', label: lang === 'bn' ? 'সব ক্যাটাগরি' : 'All Categories' },
+                    ...CATEGORIES.map((c) => ({
+                      value: c.id,
+                      label: lang === 'bn' ? c.labelBn : c.labelEn,
+                    })),
+                  ]}
+                />
               </div>
 
               {/* Right: Status Pills & Desktop View Toggle */}
@@ -1627,33 +1629,33 @@ ${item.dueDate ? `• পরিশোধের শেষ তারিখ: ${toBa
               )}
 
               {/* Member Picker / External */}
-              <div>
-                <label className="block text-[11px] font-bold text-slate-700 mb-0.5">
-                  {formType === 'PAYABLE'
+              <CustomSelect
+                label={
+                  formType === 'PAYABLE'
                     ? lang === 'bn'
                       ? 'টাকা কে পাবে? (ব্যক্তি নির্বাচন)'
                       : 'Who is owed?'
                     : lang === 'bn'
                     ? 'কার কাছে টাকা পাবেন?'
-                    : 'Who owes money?'}
-                </label>
-                <select
-                  value={selectedMemberId}
-                  onChange={(e) => handleSelectMember(e.target.value)}
-                  className="w-full h-8 px-2.5 text-xs rounded-lg border border-slate-200 bg-white font-medium focus:ring-1 focus:ring-[#438A53]/40"
-                >
-                  <option value="CUSTOM">
-                    {lang === 'bn' ? '✍️ মেসের বাইরের ব্যক্তি (নাম নিচে লিখুন)' : '✍️ External Person'}
-                  </option>
-                  <optgroup label={lang === 'bn' ? 'মেসের মেম্বারবৃন্দ' : 'Mess Members'}>
-                    {members.map((m) => (
-                      <option key={m.id} value={String(m.id)}>
-                        {m.name} {m.roomNumber ? `(রুম ${m.roomNumber})` : ''}
-                      </option>
-                    ))}
-                  </optgroup>
-                </select>
-              </div>
+                    : 'Who owes money?'
+                }
+                value={selectedMemberId}
+                onChange={(e) => handleSelectMember(e.target.value)}
+                sizeVariant="sm"
+                options={[
+                  {
+                    value: 'CUSTOM',
+                    label: lang === 'bn' ? '✍️ মেসের বাইরের ব্যক্তি (নাম নিচে লিখুন)' : '✍️ External Person',
+                  },
+                  {
+                    label: lang === 'bn' ? 'মেসের মেম্বারবৃন্দ' : 'Mess Members',
+                    options: members.map((m) => ({
+                      value: String(m.id),
+                      label: `${m.name} ${m.roomNumber ? `(রুম ${m.roomNumber})` : ''}`,
+                    })),
+                  },
+                ]}
+              />
 
               {/* Name, Phone, Room */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
@@ -1736,22 +1738,16 @@ ${item.dueDate ? `• পরিশোধের শেষ তারিখ: ${toBa
               </div>
 
               {/* Category */}
-              <div>
-                <label className="block text-[11px] font-bold text-slate-700 mb-0.5">
-                  {lang === 'bn' ? 'ক্যাটাগরি' : 'Category'}
-                </label>
-                <select
-                  value={category}
-                  onChange={(e) => setCategory(e.target.value)}
-                  className="w-full h-8 px-2.5 text-xs rounded-lg border border-slate-200 bg-white"
-                >
-                  {CATEGORIES.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {lang === 'bn' ? c.labelBn : c.labelEn}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              <CustomSelect
+                label={lang === 'bn' ? 'ক্যাটাগরি' : 'Category'}
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+                sizeVariant="sm"
+                options={CATEGORIES.map((c) => ({
+                  value: c.id,
+                  label: lang === 'bn' ? c.labelBn : c.labelEn,
+                }))}
+              />
 
               {/* Amounts: Total & Initial Paid */}
               <div className="grid grid-cols-2 gap-2">
