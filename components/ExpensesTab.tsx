@@ -19,6 +19,7 @@ import {
   translateExpenseCategory,
 } from '@/lib/i18n';
 import { ExpensesSkeleton } from '@/components/skeletons';
+import { CustomSelect } from '@/components/CustomSelect';
 
 interface ExpensesTabProps {
   isLoading?: boolean;
@@ -423,20 +424,16 @@ export function ExpensesTab({
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1">
-                    {lang === 'bn' ? 'ক্যাটাগরি *' : 'Category *'}
-                  </label>
-                  <select
+                  <CustomSelect
+                    label={lang === 'bn' ? 'ক্যাটাগরি' : 'Category'}
+                    required
                     value={category}
                     onChange={(e) => setCategory(e.target.value as ExpenseCategory)}
-                    className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs font-semibold"
-                  >
-                    {EXPENSE_CATEGORIES.map((cat) => (
-                      <option key={cat} value={cat}>
-                        {translateExpenseCategory(cat, lang)}
-                      </option>
-                    ))}
-                  </select>
+                    options={EXPENSE_CATEGORIES.map((cat) => ({
+                      value: cat,
+                      label: translateExpenseCategory(cat, lang),
+                    }))}
+                  />
                 </div>
               </div>
 
@@ -490,23 +487,22 @@ export function ExpensesTab({
                   </div>
                 ) : (
                   <div>
-                    <label className="block text-xs font-semibold text-slate-600 mb-1">
-                      {lang === 'bn' ? 'কে টাকা দিয়েছেন? (Payer) *' : 'Paid By Member / Fund *'}
-                    </label>
-                    <select
+                    <CustomSelect
+                      label={lang === 'bn' ? 'কে টাকা দিয়েছেন? (Payer)' : 'Paid By Member / Fund'}
+                      required
                       value={paidByMemberId}
                       onChange={(e) => setPaidByMemberId(Number(e.target.value))}
-                      className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs font-semibold"
-                    >
-                      <option value={0}>
-                        {lang === 'bn' ? '🏛️ মেস ডিপোজিট ফান্ড' : '🏛️ Mess Deposit Fund'}
-                      </option>
-                      {members.map((m) => (
-                        <option key={m.id} value={m.id}>
-                          👤 {m.name}
-                        </option>
-                      ))}
-                    </select>
+                      options={[
+                        {
+                          value: 0,
+                          label: lang === 'bn' ? '🏛️ মেস ডিপোজিট ফান্ড' : '🏛️ Mess Deposit Fund',
+                        },
+                        ...members.map((m) => ({
+                          value: m.id,
+                          label: `👤 ${m.name}`,
+                        })),
+                      ]}
+                    />
                   </div>
                 )}
               </div>
